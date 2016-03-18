@@ -30,4 +30,4 @@
 
 """ Version definition for nrfjprog. """
 
-NRFUTIL_VERSION = "0.0.0"
+NRFJPROG_VERSION = "0.0.0"
