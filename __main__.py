@@ -27,4 +27,70 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
-from pynrfjprog import API, Hex
+
+from lib import nrf5x
+
+def _add_erase_command(subparsers):
+    """
+    Adds the erase sub-command and it's command-line arguments to our top-level parser.
+
+    """
+    program_parser = subparsers.add_parser('erase', help = 'Erases the device.')
+
+    erase_group = program_parser.add_mutually_exclusive_group()
+    erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR')
+    erase_group.add_argument('-p', '--erasepage', type = tuple, help = 'Erase page in flash.')
+    erase_group.add_argument('-u', '--eraseuicr', action = 'store_true', help = 'Erase the UICR page in flash.')
+
+    program_parser.set_defaults(func = nrf5x.erase)
+
+def _add_program_command(subparsers):
+    """
+    Adds the program sub-command and it's command-line arguments to our top-level parser.
+
+    """
+    program_parser = subparsers.add_parser('program', help = 'Programs the device.')
+
+    program_parser.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
+    
+    erase_group = program_parser.add_mutually_exclusive_group()
+    erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR, before programming the device.')
+    erase_group.add_argument('-s', '--sectorserase', action = 'store_true', help = 'Erase all sectors that FILE writes before programming.')
+    erase_group.add_argument('-u', '--sectorsanduicrerase', action = 'store_true', help = 'Erase all sectors that FILE writes and the UICR before programming.')
+
+    program_parser.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
+
+    program_parser.set_defaults(func = nrf5x.program)
+
+def _add_recover_command(subparsers):
+    """
+    Adds the recover sub-command to our top-level parser.
+
+    """
+    recover_parser = subparsers.add_parser('recover', help = 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
+    recover_parser.set_defaults(func = nrf5x.recover)
+
+def _add_reset_command(subparsers):
+    """
+    Adds the reset sub-command and it's command-line arguments to our top-level parser.
+
+    """
+    reset_parser = subparsers.add_parser('reset', help = 'Resets the device.')
+
+    reset_group = reset_parser.add_mutually_exclusive_group()
+    reset_group.add_argument('-d', '--debugreset', action = 'store_true', help = 'Executes a debug reset.')
+    reset_group.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
+    reset_group.add_argument('-s', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
+
+    reset_parser.set_defaults(func = nrf5x.reset)
+
+parser = argparse.ArgumentParser(description='nrfjprog is a command line tool used for programming nRF5x devices.')
+subparsers = parser.add_subparsers()
+_add_erase_command(subparsers)
+_add_program_command(subparsers)
+_add_recover_command(subparsers)
+_add_reset_command(subparsers)
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    args.func(args)  # call the default function
