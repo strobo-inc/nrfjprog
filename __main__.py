@@ -35,14 +35,9 @@ def _add_erase_command(subparsers):
     Adds the erase sub-command and it's command-line arguments to our top-level parser.
 
     """
-    program_parser = subparsers.add_parser('erase', help = 'Erases the device.')
-
-    erase_group = program_parser.add_mutually_exclusive_group()
-    erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR')
-    erase_group.add_argument('-p', '--erasepage', type = int, help = 'Erase page in flash. ERASEPAGE is the start address of the page to be erased.')
-    erase_group.add_argument('-u', '--eraseuicr', action = 'store_true', help = 'Erase the UICR page in flash.')
-
-    program_parser.set_defaults(func = nrf5x.erase)
+    erase_parser = subparsers.add_parser('erase', help = 'Erases the device.')
+    _add_erase_group(erase_parser)
+    erase_parser.set_defaults(func = nrf5x.erase)
 
 def _add_program_command(subparsers):
     """
@@ -50,16 +45,10 @@ def _add_program_command(subparsers):
 
     """
     program_parser = subparsers.add_parser('program', help = 'Programs the device.')
-
-    program_parser.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
-    
-    erase_group = program_parser.add_mutually_exclusive_group()
-    erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR, before programming the device.')
-    erase_group.add_argument('-s', '--sectorserase', action = 'store_true', help = 'Erase all sectors that FILE writes before programming.')
-    erase_group.add_argument('-u', '--sectorsanduicrerase', action = 'store_true', help = 'Erase all sectors that FILE writes and the UICR before programming.')
-
-    program_parser.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
-
+    _add_file_option(program_parser)
+    _add_erase_group(program_parser)
+    _add_verify_option(program_parser)
+    _add_reset_group(program_parser)
     program_parser.set_defaults(func = nrf5x.program)
 
 def _add_recover_command(subparsers):
@@ -76,13 +65,42 @@ def _add_reset_command(subparsers):
 
     """
     reset_parser = subparsers.add_parser('reset', help = 'Resets the device.')
+    _add_reset_group(reset_parser)
+    reset_parser.set_defaults(func = nrf5x.reset)
 
-    reset_group = reset_parser.add_mutually_exclusive_group()
+def _add_erase_group(sub_parser):
+    """
+    Adds the mutually exclusive group of erase options to our command.
+
+    """
+    erase_group = sub_parser.add_mutually_exclusive_group()
+    erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR, before programming the device.')
+    erase_group.add_argument('-s', '--sectorserase', action = 'store_true', help = 'Erase all sectors that FILE writes before programming.')
+    erase_group.add_argument('-u', '--sectorsanduicrerase', action = 'store_true', help = 'Erase all sectors that FILE writes and the UICR before programming.')
+
+def _add_reset_group(sub_parser):
+    """
+    Adds the mutually exclusive group of reset options to our command.
+
+    """
+    reset_group = sub_parser.add_mutually_exclusive_group()
     reset_group.add_argument('-d', '--debugreset', action = 'store_true', help = 'Executes a debug reset.')
     reset_group.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
-    reset_group.add_argument('-s', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
+    reset_group.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
 
-    reset_parser.set_defaults(func = nrf5x.reset)
+def _add_file_option(sub_parser):
+    """
+    Adds the required file option to our command.
+
+    """
+    sub_parser.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
+
+def _add_verify_option(sub_parser):
+    """
+    Adds the verify option to our command.
+    """
+    sub_parser.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
+
 
 parser = argparse.ArgumentParser(description='nrfjprog is a command line tool used for programming nRF5x devices.')
 subparsers = parser.add_subparsers()
