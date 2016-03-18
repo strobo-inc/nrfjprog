@@ -68,6 +68,15 @@ def _add_reset_command(subparsers):
     _add_reset_group(reset_parser)
     reset_parser.set_defaults(func = nrf5x.reset)
 
+def _add_verify_command(subparsers):
+    """
+    Adds the verify command and it's command-line arguments to our top-level parser.
+
+    """
+    verify_parser = subparsers.add_parser('verify', help = 'Verifies that memory contains the correct data.')
+    _add_file_option(verify_parser)
+    verify_parser.set_defaults(func = nrf5x.verify)
+
 def _add_erase_group(sub_parser):
     """
     Adds the mutually exclusive group of erase options to our command.
@@ -108,6 +117,7 @@ _add_erase_command(subparsers)
 _add_program_command(subparsers)
 _add_recover_command(subparsers)
 _add_reset_command(subparsers)
+_add_verify_command(subparsers)
 
 if __name__ == '__main__':
     args = parser.parse_args()

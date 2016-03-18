@@ -116,3 +116,10 @@ def reset(args):
     
     api.go()
     _cleanup(api)
+
+def verify(args):
+    """
+    Verifies that memory contains the right data.
+
+    """
+    print('verify')
