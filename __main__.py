@@ -39,7 +39,7 @@ def _add_erase_command(subparsers):
 
     erase_group = program_parser.add_mutually_exclusive_group()
     erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR')
-    erase_group.add_argument('-p', '--erasepage', type = tuple, help = 'Erase page in flash.')
+    erase_group.add_argument('-p', '--erasepage', type = int, help = 'Erase page in flash. ERASEPAGE is the start address of the page to be erased.')
     erase_group.add_argument('-u', '--eraseuicr', action = 'store_true', help = 'Erase the UICR page in flash.')
 
     program_parser.set_defaults(func = nrf5x.erase)
