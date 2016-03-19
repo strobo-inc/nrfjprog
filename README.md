@@ -10,6 +10,6 @@ The nrfjprog command line tool implemented in Python.
 
 > Clone or download this repository.
 
-> Navigate to it's directory.
+> Navigate to the repository's directory (~/nrfjprog/).
 
-> $ python __main__.py --help
+> $ python nordicsemi --help
