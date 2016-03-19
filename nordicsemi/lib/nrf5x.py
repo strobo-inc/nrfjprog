@@ -32,7 +32,7 @@ import os
 
 class NRF5x:
     """
-    Common class that manages API.py and some shared options.
+    Common class that manages the api instance, some shared options and logging.
 
     """
     def __init__(self, args):
@@ -43,7 +43,7 @@ class NRF5x:
 
         :return: None
         """
-        try: # A bit hacky?
+        try: # A bit hacky? quiet may not be an option for some commands so args.quiet would be undefined causing an error.
             self.quiet = args.quiet
         except Exception:
             self.quiet = None

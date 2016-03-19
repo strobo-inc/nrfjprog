@@ -157,6 +157,7 @@ def _add_snr_option(sub_parser):
 def _add_verify_option(sub_parser):
     """
     Adds the verify option to our command.
+    
     """
     sub_parser.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
 
