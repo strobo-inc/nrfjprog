@@ -122,3 +122,11 @@ def verify(args):
 
     """
     print('verifying memory of device')
+
+def version(args):
+    """
+    Display the nrfjprog and JLinkARM DLL versions.
+
+    """
+    print('displaying the nrfjprog and JLinkARM DLL versions.')
+    

@@ -77,6 +77,14 @@ def _add_verify_command(subparsers):
     _add_file_option(verify_parser)
     verify_parser.set_defaults(func = nrf5x.verify)
 
+def _add_version_command(subparsers):
+    """
+    Adds the version command to our top-level parser.
+
+    """
+    version_parser = subparsers.add_parser('version', help = 'Display the nrfjprog and JLinkARM DLL versions.')
+    version_parser.set_defaults(func = nrf5x.version)
+
 def _add_erase_group(sub_parser):
     """
     Adds the mutually exclusive group of erase options to our command.
@@ -118,6 +126,7 @@ _add_program_command(subparsers)
 _add_recover_command(subparsers)
 _add_reset_command(subparsers)
 _add_verify_command(subparsers)
+_add_version_command(subparsers)
 
 if __name__ == '__main__':
     args = parser.parse_args()
