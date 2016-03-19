@@ -74,7 +74,7 @@ def erase(args):
     _cleanup(api)
 
 def program(args):
-    print('programming the device')
+    print('programming device')
     api = _setup()
 
     module_dir, module_file = os.path.split(__file__)
@@ -90,7 +90,7 @@ def program(args):
     _cleanup(api)
 
 def recover(args):
-    print('recovering the device')
+    print('recovering device')
     api = _setup()
 
     api.recover()
@@ -103,6 +103,7 @@ def reset(args):
 
     :param : The optional flags specified.
     """
+    print('resetting device')
     api = _setup()
 
     if args.debugreset:
@@ -120,4 +121,4 @@ def verify(args):
     Verifies that memory contains the right data.
 
     """
-    print('verify')
+    print('verifying memory of device')
