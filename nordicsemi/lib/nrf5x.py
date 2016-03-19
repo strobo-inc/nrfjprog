@@ -44,17 +44,13 @@ class NRF5x:
         :return: None
         """
         try: # A bit hacky?
-            if args.quiet:
-                self.quiet = True
-            else:
-                self.quiet = None
-
-            if args.snr:
-                self.snr = args.snr
-            else:
-                self.snr = None
-        except:
+            self.quiet = args.quiet
+        except Exception:
             self.quiet = None
+
+        try:
+            self.snr = args.snr
+        except Exception:
             self.snr = None
 
         if use_api == True: # It is important that this is the last property we initialize.
