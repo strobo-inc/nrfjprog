@@ -39,6 +39,14 @@ def _add_erase_command(subparsers):
     _add_erase_group(erase_parser)
     erase_parser.set_defaults(func = nrf5x.erase)
 
+def _add_ids_command(subparser):
+    """
+    Adds the ids sub-command to our top-level parser.
+
+    """
+    ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
+    ids_parser.set_defaults(func = nrf5x.ids)
+
 def _add_program_command(subparsers):
     """
     Adds the program sub-command and it's command-line arguments to our top-level parser.
@@ -122,6 +130,7 @@ def _add_verify_option(sub_parser):
 parser = argparse.ArgumentParser(description='nrfjprog is a command line tool used for programming nRF5x devices.')
 subparsers = parser.add_subparsers()
 _add_erase_command(subparsers)
+_add_ids_command(subparsers)
 _add_program_command(subparsers)
 _add_recover_command(subparsers)
 _add_reset_command(subparsers)

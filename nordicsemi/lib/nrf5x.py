@@ -74,6 +74,12 @@ def erase(args):
 
     _cleanup(api)
 
+def ids(args):
+    print('displaying ids of all connected debuggers')
+    api = _setup()
+    print(api.enum_emu_snr())
+    _cleanup(api)
+
 def program(args):
     print('programming device')
     api = _setup()
