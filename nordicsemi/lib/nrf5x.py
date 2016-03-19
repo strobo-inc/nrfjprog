@@ -35,7 +35,7 @@ class NRF5x:
     Common class that manages API.py and some shared options.
 
     """
-    def __init__(self, args, use_api = True):
+    def __init__(self, args):
         """
         Constructor that requires the arguments the command was called with.
 
@@ -53,8 +53,7 @@ class NRF5x:
         except Exception:
             self.snr = None
 
-        if use_api == True: # It is important that this is the last property we initialize.
-            self.api = self._setup()
+        self.api = self._setup()
 
     def _setup(self):
         """
