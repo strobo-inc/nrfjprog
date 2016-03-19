@@ -27,7 +27,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
-
 from lib import nrf5x
 
 def _add_erase_command(subparsers):
@@ -37,6 +36,7 @@ def _add_erase_command(subparsers):
     """
     erase_parser = subparsers.add_parser('erase', help = 'Erases the device.')
     _add_erase_group(erase_parser)
+    _add_snr_option(erase_parser)
     erase_parser.set_defaults(func = nrf5x.erase)
 
 def _add_ids_command(subparser):
@@ -57,6 +57,7 @@ def _add_program_command(subparsers):
     _add_erase_group(program_parser)
     _add_verify_option(program_parser)
     _add_reset_group(program_parser)
+    _add_snr_option(program_parser)
     program_parser.set_defaults(func = nrf5x.program)
 
 def _add_recover_command(subparsers):
@@ -65,6 +66,7 @@ def _add_recover_command(subparsers):
 
     """
     recover_parser = subparsers.add_parser('recover', help = 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
+    _add_snr_option(recover_parser)
     recover_parser.set_defaults(func = nrf5x.recover)
 
 def _add_reset_command(subparsers):
@@ -74,6 +76,7 @@ def _add_reset_command(subparsers):
     """
     reset_parser = subparsers.add_parser('reset', help = 'Resets the device.')
     _add_reset_group(reset_parser)
+    _add_snr_option(reset_parser)
     reset_parser.set_defaults(func = nrf5x.reset)
 
 def _add_verify_command(subparsers):
@@ -82,6 +85,7 @@ def _add_verify_command(subparsers):
 
     """
     verify_parser = subparsers.add_parser('verify', help = 'Verifies that memory contains the correct data.')
+    _add_snr_option(verify_parser)
     _add_file_option(verify_parser)
     verify_parser.set_defaults(func = nrf5x.verify)
 
@@ -119,6 +123,13 @@ def _add_file_option(sub_parser):
 
     """
     sub_parser.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
+
+def _add_snr_option(sub_parser):
+    """
+    Adds the snr option to our command.
+
+    """
+    sub_parser.add_argument('--snr', type = int, help = 'Selects the debugger with the given serial number among all those connected to the PC for the operation.')
 
 def _add_verify_option(sub_parser):
     """
