@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pynrfjprog import API, Hex
+import nrfjprog_version
 import os
 
 def _setup():
@@ -129,4 +130,8 @@ def version(args):
 
     """
     print('displaying the nrfjprog and JLinkARM DLL versions.')
-    
+    api = _setup()
+    jlink_arm_dll_version = api.dll_version()
+    print(jlink_arm_dll_version)
+    print(nrfjprog_version.NRFJPROG_VERSION)
+    _cleanup(api)
