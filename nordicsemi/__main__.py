@@ -35,6 +35,7 @@ def _add_erase_command(subparsers):
 
     """
     erase_parser = subparsers.add_parser('erase', help = 'Erases the device.')
+    _add_clockspeed_option(erase_parser)
     _add_erase_group(erase_parser)
     _add_quiet_option(erase_parser)
     _add_snr_option(erase_parser)
@@ -54,6 +55,7 @@ def _add_program_command(subparsers):
 
     """
     program_parser = subparsers.add_parser('program', help = 'Programs the device.')
+    _add_clockspeed_option(program_parser)
     _add_file_option(program_parser)
     _add_erase_group(program_parser)
     _add_quiet_option(program_parser)
@@ -68,6 +70,7 @@ def _add_recover_command(subparsers):
 
     """
     recover_parser = subparsers.add_parser('recover', help = 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
+    _add_clockspeed_option(recover_parser)
     _add_quiet_option(recover_parser)
     _add_snr_option(recover_parser)
     recover_parser.set_defaults(func = nrf5x.recover)
@@ -89,6 +92,7 @@ def _add_verify_command(subparsers):
 
     """
     verify_parser = subparsers.add_parser('verify', help = 'Verifies that memory contains the correct data.')
+    _add_clockspeed_option(verify_parser)
     _add_quiet_option(verify_parser)
     _add_snr_option(verify_parser)
     _add_file_option(verify_parser)
@@ -121,6 +125,13 @@ def _add_reset_group(sub_parser):
     reset_group.add_argument('-d', '--debugreset', action = 'store_true', help = 'Executes a debug reset.')
     reset_group.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
     reset_group.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
+
+def _add_clockspeed_option(sub_parser):
+    """
+    Adds the clockspeed option to our command.
+
+    """
+    sub_parser.add_argument('-c', '--clockspeed', type = int, help = 'Sets the debugger SWD clock speed in kHz.')
 
 def _add_file_option(sub_parser):
     """

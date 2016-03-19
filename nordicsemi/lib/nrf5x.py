@@ -53,13 +53,18 @@ class NRF5x:
         except Exception:
             self.snr = None
 
+        try:
+            self.clockspeed = args.clockspeed
+        except Exception:
+            self.clockspeed = None
+
         self.api = self._setup()
 
     def _setup(self):
         """
         Discovers the family of the target device and connects to it.
 
-        :return API: Instance of an API object that is connected to an nRF5x device.
+        :return Object api: Instance of an API object that is initialized and connected to an nRF5x device.
         """
         device_family = API.DeviceFamily.NRF51
         api = API.API(device_family)
@@ -85,9 +90,18 @@ class NRF5x:
 
     def _connect_to_emu(self, api):
         if self.snr:
-            api.connect_to_emu_with_snr(self.snr)
+            if self.clockspeed:
+                api.connect_to_emu_with_snr(self.snr, self.clockspeed)
+            else:
+                api.connect_to_emu_with_snr(self.snr)
         else:
-            api.connect_to_emu_without_snr()
+            if self.clockspeed:
+                api.connect_to_emu_without_snr(self.clockspeed)
+            else:
+                api.connect_to_emu_without_snr()
+
+    def _set_clock_speed(self):
+        pass
 
     def log(self, msg):
         if self.quiet:
