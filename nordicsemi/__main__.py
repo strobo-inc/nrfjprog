@@ -41,6 +41,16 @@ def _add_erase_command(subparsers):
     _add_snr_option(erase_parser)
     erase_parser.set_defaults(func = nrf5x.erase)
 
+def _add_halt_command(subparser):
+    """
+    Adds the halt sub-command to our top-level parser.
+
+    """
+    halt_parser = subparsers.add_parser('halt', help = 'Halts the CPU.')
+    _add_quiet_option(halt_parser)
+    _add_snr_option(halt_parser)
+    halt_parser.set_defaults(func = nrf5x.halt)
+
 def _add_ids_command(subparser):
     """
     Adds the ids sub-command to our top-level parser.
@@ -85,6 +95,16 @@ def _add_reset_command(subparsers):
     _add_reset_group(reset_parser)
     _add_snr_option(reset_parser)
     reset_parser.set_defaults(func = nrf5x.reset)
+
+def _add_run_command(subparsers):
+    """
+    Adds the run sub-command to our top-level parser.
+
+    """
+    run_parser = subparsers.add_parser('run', help = 'Runs the CPU.')
+    _add_quiet_option(run_parser)
+    _add_snr_option(run_parser)
+    run_parser.set_defaults(func = nrf5x.run)
 
 def _add_verify_command(subparsers):
     """
@@ -145,7 +165,7 @@ def _add_quiet_option(sub_parser):
     Adds the quiet option to our command.
 
     """
-    sub_parser.add_argument('-q', '--quiet', action=  'store_true', help = 'Will not print to terminal.' )
+    sub_parser.add_argument('-q', '--quiet', action =  'store_true', help = 'Will not print to terminal.' )
 
 def _add_snr_option(sub_parser):
     """
@@ -157,7 +177,7 @@ def _add_snr_option(sub_parser):
 def _add_verify_option(sub_parser):
     """
     Adds the verify option to our command.
-    
+
     """
     sub_parser.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
 
@@ -165,10 +185,12 @@ def _add_verify_option(sub_parser):
 parser = argparse.ArgumentParser(description='nrfjprog is a command line tool used for programming nRF5x devices.')
 subparsers = parser.add_subparsers()
 _add_erase_command(subparsers)
+_add_halt_command(subparsers)
 _add_ids_command(subparsers)
 _add_program_command(subparsers)
 _add_recover_command(subparsers)
 _add_reset_command(subparsers)
+_add_run_command(subparsers)
 _add_verify_command(subparsers)
 _add_version_command(subparsers)
 

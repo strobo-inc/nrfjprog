@@ -32,18 +32,23 @@ import os
 
 class NRF5x:
     """
-    Common class that manages the api instance, some shared options and logging.
+    Common class that manages the api instance, some shared arguments amongst commands and logging.
 
     """
     def __init__(self, args):
         """
         Constructor that requires the arguments the command was called with.
 
-        :param Object args: The options the command was called with.
+        :param Object args: The arguments the command was called with.
 
         :return: None
         """
-        try: # A bit hacky? quiet may not be an option for some commands so args.quiet would be undefined causing an error.
+        try: # A bit hacky? quiet may not be an argument for some commands so args.quiet would be undefined causing an error.
+            self.clockspeed = args.clockspeed
+        except Exception:
+            self.clockspeed = None
+
+        try:
             self.quiet = args.quiet
         except Exception:
             self.quiet = None
@@ -53,18 +58,13 @@ class NRF5x:
         except Exception:
             self.snr = None
 
-        try:
-            self.clockspeed = args.clockspeed
-        except Exception:
-            self.clockspeed = None
-
         self.api = self._setup()
 
     def _setup(self):
         """
-        Discovers the family of the target device and connects to it.
+        Discovers the family (either NRF51 or NRF52) of the target device (through trial and error) and connects to it.
 
-        :return Object api: Instance of an API object that is initialized and connected to an nRF5x device.
+        :return API api: Instance of an API object that is initialized and connected to an nRF5x device.
         """
         device_family = API.DeviceFamily.NRF51
         api = API.API(device_family)
@@ -85,7 +85,6 @@ class NRF5x:
 
         api.connect_to_device()
 
-        assert(api.is_connected_to_device()), 'unable to connect to target device'
         return api
 
     def _connect_to_emu(self, api):
@@ -99,9 +98,6 @@ class NRF5x:
                 api.connect_to_emu_without_snr(self.clockspeed)
             else:
                 api.connect_to_emu_without_snr()
-
-    def _set_clock_speed(self):
-        pass
 
     def log(self, msg):
         if self.quiet:
@@ -123,6 +119,14 @@ def erase(args):
         nrf.api.erase_uicr()
     else:
         nrf.api.erase_all()
+
+    nrf.cleanup()
+
+def halt(args):
+    nrf = NRF5x(args)
+    nrf.log('halting device')
+
+    nrf.api.halt()
 
     nrf.cleanup()
 
@@ -173,6 +177,14 @@ def reset(args):
         nrf.api.sys_reset()
     
     nrf.api.go()
+    nrf.cleanup()
+
+def run(args):
+    nrf = NRF5x(args)
+    nrf.log('running device')
+
+    nrf.api.go()
+
     nrf.cleanup()
 
 def verify(args):
