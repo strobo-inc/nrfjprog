@@ -27,6 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
+import sys
+
 from lib import nrf5x
 
 def _add_erase_command(subparsers):
@@ -41,7 +43,7 @@ def _add_erase_command(subparsers):
     _add_snr_option(erase_parser)
     erase_parser.set_defaults(func = nrf5x.erase)
 
-def _add_halt_command(subparser):
+def _add_halt_command(subparsers):
     """
     Adds the halt sub-command to our top-level parser.
 
@@ -51,7 +53,7 @@ def _add_halt_command(subparser):
     _add_snr_option(halt_parser)
     halt_parser.set_defaults(func = nrf5x.halt)
 
-def _add_ids_command(subparser):
+def _add_ids_command(subparsers):
     """
     Adds the ids sub-command to our top-level parser.
 
@@ -126,74 +128,77 @@ def _add_version_command(subparsers):
     version_parser = subparsers.add_parser('version', help = 'Display the nrfjprog and JLinkARM DLL versions.')
     version_parser.set_defaults(func = nrf5x.version)
 
-def _add_erase_group(sub_parser):
+def _add_erase_group(sub_parsers):
     """
     Adds the mutually exclusive group of erase options to our command.
 
     """
-    erase_group = sub_parser.add_mutually_exclusive_group()
+    erase_group = sub_parsers.add_mutually_exclusive_group()
     erase_group.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user flash, including UICR, before programming the device.')
     erase_group.add_argument('-s', '--sectorserase', action = 'store_true', help = 'Erase all sectors that FILE writes before programming.')
     erase_group.add_argument('-u', '--sectorsanduicrerase', action = 'store_true', help = 'Erase all sectors that FILE writes and the UICR before programming.')
 
-def _add_reset_group(sub_parser):
+def _add_reset_group(sub_parsers):
     """
     Adds the mutually exclusive group of reset options to our command.
 
     """
-    reset_group = sub_parser.add_mutually_exclusive_group()
+    reset_group = sub_parsers.add_mutually_exclusive_group()
     reset_group.add_argument('-d', '--debugreset', action = 'store_true', help = 'Executes a debug reset.')
     reset_group.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
     reset_group.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
 
-def _add_clockspeed_option(sub_parser):
+def _add_clockspeed_option(sub_parsers):
     """
     Adds the clockspeed option to our command.
 
     """
-    sub_parser.add_argument('-c', '--clockspeed', type = int, help = 'Sets the debugger SWD clock speed in kHz.')
+    sub_parsers.add_argument('-c', '--clockspeed', type = int, help = 'Sets the debugger SWD clock speed in kHz.')
 
-def _add_file_option(sub_parser):
+def _add_file_option(sub_parsers):
     """
     Adds the required file option to our command.
 
     """
-    sub_parser.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
+    sub_parsers.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
 
-def _add_quiet_option(sub_parser):
+def _add_quiet_option(sub_parsers):
     """
     Adds the quiet option to our command.
 
     """
-    sub_parser.add_argument('-q', '--quiet', action =  'store_true', help = 'Will not print to terminal.' )
+    sub_parsers.add_argument('-q', '--quiet', action =  'store_true', help = 'Will not print to terminal.' )
 
-def _add_snr_option(sub_parser):
+def _add_snr_option(sub_parsers):
     """
     Adds the snr option to our command.
 
     """
-    sub_parser.add_argument('--snr', type = int, help = 'Selects the debugger with the given serial number among all those connected to the PC for the operation.')
+    sub_parsers.add_argument('--snr', type = int, help = 'Selects the debugger with the given serial number among all those connected to the PC for the operation.')
 
-def _add_verify_option(sub_parser):
+def _add_verify_option(sub_parsers):
     """
     Adds the verify option to our command.
 
     """
-    sub_parser.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
+    sub_parsers.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory after programming and verify that FILE was correctly written.')
 
+def main(argv):
+    parser = argparse.ArgumentParser(description='nrfjprog is a command line tool used for programming nRF5x devices.')
+    subparsers = parser.add_subparsers()
+    _add_erase_command(subparsers)
+    _add_halt_command(subparsers)
+    _add_ids_command(subparsers)
+    _add_program_command(subparsers)
+    _add_recover_command(subparsers)
+    _add_reset_command(subparsers)
+    _add_run_command(subparsers)
+    _add_verify_command(subparsers)
+    _add_version_command(subparsers)
 
-parser = argparse.ArgumentParser(description='nrfjprog is a command line tool used for programming nRF5x devices.')
-subparsers = parser.add_subparsers()
-_add_erase_command(subparsers)
-_add_halt_command(subparsers)
-_add_ids_command(subparsers)
-_add_program_command(subparsers)
-_add_recover_command(subparsers)
-_add_reset_command(subparsers)
-_add_run_command(subparsers)
-_add_verify_command(subparsers)
-_add_version_command(subparsers)
-
-if __name__ == '__main__':
     args = parser.parse_args()
     args.func(args)  # call the default function
+
+if __name__ == '__main__':
+    main(sys.argv)
+    
