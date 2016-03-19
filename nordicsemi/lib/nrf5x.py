@@ -30,79 +30,122 @@ from pynrfjprog import API, Hex
 import nrfjprog_version
 import os
 
-def _setup():
+class NRF5x:
     """
-    Discovers the family of the target device and connects to it.
+    Common class that manages API.py and some shared options.
 
-    :return API: Instance of an API object that is connected to an nRF5x device.
     """
-    device_family = API.DeviceFamily.NRF51
-    api = API.API(device_family)
-    api.open()
-    api.connect_to_emu_without_snr()
-    
-    try:
-        device_version = api.read_device_version()
-    except API.APIError as e:
-        if e.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
-            device_family = API.DeviceFamily.NRF52
-            api.close()
-            api = API.API(device_family)
-            api.open()
-            api.connect_to_emu_without_snr()
+    def __init__(self, args, use_api = True):
+        """
+        Constructor that requires the arguments the command was called with.
+
+        :param Object args: The options the command was called with.
+
+        :return: None
+        """
+        try: # A bit hacky?
+            if args.quiet:
+                self.quiet = True
+            else:
+                self.quiet = None
+
+            if args.snr:
+                self.snr = args.snr
+            else:
+                self.snr = None
+        except:
+            self.quiet = None
+            self.snr = None
+
+        if use_api == True: # It is important that this is the last property we initialize.
+            self.api = self._setup()
+
+    def _setup(self):
+        """
+        Discovers the family of the target device and connects to it.
+
+        :return API: Instance of an API object that is connected to an nRF5x device.
+        """
+        device_family = API.DeviceFamily.NRF51
+        api = API.API(device_family)
+        api.open()
+        self._connect_to_emu(api)
+        
+        try:
+            device_version = api.read_device_version()
+        except API.APIError as e:
+            if e.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
+                device_family = API.DeviceFamily.NRF52
+                api.close()
+                api = API.API(device_family)
+                api.open()
+                self._connect_to_emu(api)
+            else:
+                raise e
+
+        api.connect_to_device()
+
+        assert(api.is_connected_to_device()), 'unable to connect to target device'
+        return api
+
+    def _connect_to_emu(self, api):
+        if self.snr:
+            api.connect_to_emu_with_snr(self.snr)
         else:
-            raise e
+            api.connect_to_emu_without_snr()
 
-    api.connect_to_device()
+    def log(self, msg):
+        if self.quiet:
+            pass
+        else:
+            print(msg)
 
-    assert(api.is_connected_to_device()), 'unable to connect to target device'
-    return api
-
-def _cleanup(api):
-    api.close()
+    def cleanup(self):
+        self.api.disconnect_from_emu()
+        self.api.close()
 
 def erase(args):
-    print('erasing device')
-    api = _setup()
+    nrf = NRF5x(args)
+    nrf.log('erasing device')
 
     if args.erasepage:
-        api.erase_page(args.erasepage) # TODO: Not working.
+        nrf.api.erase_page(args.erasepage) # TODO: Not working.
     elif args.eraseuicr:
-        api.erase_uicr()
+        nrf.api.erase_uicr()
     else:
-        api.erase_all()
+        nrf.api.erase_all()
 
-    _cleanup(api)
+    nrf.cleanup()
 
 def ids(args):
-    print('displaying ids of all connected debuggers')
-    api = _setup()
-    print(api.enum_emu_snr())
-    _cleanup(api)
+    nrf = NRF5x(args)
+    nrf.log('displaying ids of all connected debuggers')
+    nrf.log(nrf.api.enum_emu_snr())
+    nrf.cleanup()
 
 def program(args):
-    print('programming device')
-    api = _setup()
+    nrf = NRF5x(args)
+    nrf.log('programming device')
 
     module_dir, module_file = os.path.split(__file__)
     hex_file_path = os.path.join(os.path.abspath(module_dir), args.file.name)
     
     # Parse hex, program to device
-    print('# Parsing hex file into segments  ')
+    nrf.log('# Parsing hex file into segments  ')
     test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
-    print('# Writing %s to device  ' % hex_file_path)
+    nrf.log('# Writing %s to device  ' % hex_file_path)
     for segment in test_program:
-        api.write(segment.address, segment.data, True)
+        nrf.api.write(segment.address, segment.data, True)
 
-    _cleanup(api)
+    nrf.cleanup()
 
 def recover(args):
-    print('recovering device')
-    api = _setup()
+    nrf = NRF5x(args)
+    nrf.log('recovering device')
 
-    api.recover()
+    nrf.api.recover()
 
-    _cleanup(api)
+    nrf.cleanup()
 
 def reset(args):
     """
@@ -110,34 +153,35 @@ def reset(args):
 
     :param : The optional flags specified.
     """
-    print('resetting device')
-    api = _setup()
+    nrf = NRF5x(args)
+    nrf.log('resetting device')
 
     if args.debugreset:
-        api.debug_reset()
+        nrf.api.debug_reset()
     elif args.pinreset:
-        api.pin_reset()
+        nrf.api.pin_reset()
     else:
-        api.sys_reset()
+        nrf.api.sys_reset()
     
-    api.go()
-    _cleanup(api)
+    nrf.api.go()
+    nrf.cleanup()
 
 def verify(args):
     """
     Verifies that memory contains the right data.
 
     """
-    print('verifying memory of device')
+    nrf = NRF5x(args)
+    nrf.log('verifying memory of device')
 
 def version(args):
     """
     Display the nrfjprog and JLinkARM DLL versions.
 
     """
-    print('displaying the nrfjprog and JLinkARM DLL versions.')
-    api = _setup()
-    jlink_arm_dll_version = api.dll_version()
-    print(jlink_arm_dll_version)
-    print(nrfjprog_version.NRFJPROG_VERSION)
-    _cleanup(api)
+    nrf = NRF5x(args)
+    nrf.log('displaying the nrfjprog and JLinkARM DLL versions.')
+    jlink_arm_dll_version = nrf.api.dll_version()
+    nrf.log(jlink_arm_dll_version)
+    nrf.log(nrfjprog_version.NRFJPROG_VERSION)
+    nrf.cleanup()
