@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/mjdietzx/nrfjprog.svg?branch=develop)](https://travis-ci.org/mjdietzx/nrfjprog)
-[![PyPI](https://img.shields.io/pypi/l/Django.svg)]()
-[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)](https://github.com/mjdietzx/nrfjprog/releases)
+[![PyPI](https://img.shields.io/pypi/l/Django.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # nrfjprog
 The nrfjprog command line tool implemented in Python.
