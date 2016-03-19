@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mjdietzx/nrfjprog.svg?branch=develop)](https://travis-ci.org/mjdietzx/nrfjprog)
+
 # nrfjprog
 The nrfjprog command line tool implemented in Python.
 
