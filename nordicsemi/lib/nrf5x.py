@@ -109,11 +109,12 @@ class NRF5x:
 """
 The functions that are called from argparse based on the command-line input.
 
+All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
 """
 
 def erase(args):
     nrf = NRF5x(args)
-    nrf.log('erasing device')
+    nrf.log('Erasing the device.') # This should go to stderr.
 
     if args.erasepage:
         nrf.api.erase_page(args.erasepage) # TODO: Not working.
@@ -126,7 +127,7 @@ def erase(args):
 
 def halt(args):
     nrf = NRF5x(args)
-    nrf.log('halting device')
+    nrf.log("Halting the device's CPU.")
 
     nrf.api.halt()
 
@@ -134,25 +135,31 @@ def halt(args):
 
 def ids(args):
     nrf = NRF5x(args)
-    nrf.log('displaying ids of all connected debuggers')
-    nrf.log(nrf.api.enum_emu_snr())
+    nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
+
+    print(nrf.api.enum_emu_snr()) # This should go to stdout.
+
     nrf.cleanup()
 
 def memrd(args):
     nrf = NRF5x(args)
-    nrf.log('reading memory.')
+    nrf.log("Reading the device's memory.")
+
     #nrf.log(nrf.api.enum_emu_snr())
+
     nrf.cleanup()
 
 def memwr(args):
     nrf = NRF5x(args)
-    nrf.log('writing memory.')
+    nrf.log("Writing the device's memory.")
+
     #nrf.log(nrf.api.enum_emu_snr())
+
     nrf.cleanup()
 
 def program(args):
     nrf = NRF5x(args)
-    nrf.log('programming device')
+    nrf.log('Programming the device.')
 
     module_dir, module_file = os.path.split(__file__)
     hex_file_path = os.path.join(os.path.abspath(module_dir), args.file.name)
@@ -168,32 +175,31 @@ def program(args):
 
 def readregs(args):
     nrf = NRF5x(args)
-    nrf.log('reading CPU registers')
+    nrf.log('Reading the CPU registers.')
+
     #nrf.log(nrf.api.enum_emu_snr())
+
     nrf.cleanup()
 
 def readtofile(args):
     nrf = NRF5x(args)
-    nrf.log('reading memory to file')
+    nrf.log("Reading and storing the device's memory.")
+
     #nrf.log(nrf.api.enum_emu_snr())
+
     nrf.cleanup()
 
 def recover(args):
     nrf = NRF5x(args)
-    nrf.log('recovering device')
+    nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
 
     nrf.api.recover()
 
     nrf.cleanup()
 
 def reset(args):
-    """
-    Performs a reset of the device. Performs a system reset by default.
-
-    :param : The optional flags specified.
-    """
     nrf = NRF5x(args)
-    nrf.log('resetting device')
+    nrf.log('Resetting the device.')
 
     if args.debugreset:
         nrf.api.debug_reset()
@@ -207,28 +213,24 @@ def reset(args):
 
 def run(args):
     nrf = NRF5x(args)
-    nrf.log('running device')
+    nrf.log("Running the device's CPU.")
 
     nrf.api.go()
 
     nrf.cleanup()
 
 def verify(args):
-    """
-    Verifies that memory contains the right data.
-
-    """
     nrf = NRF5x(args)
-    nrf.log('verifying memory of device')
+    nrf.log("Verifying that the device's memory contains the correct data.")
+
+    nrf.cleanup()
 
 def version(args):
-    """
-    Display the nrfjprog and JLinkARM DLL versions.
-
-    """
     nrf = NRF5x(args)
-    nrf.log('displaying the nrfjprog and JLinkARM DLL versions.')
+    nrf.log('Displaying the nrfjprog and JLinkARM DLL versions.')
+
     jlink_arm_dll_version = nrf.api.dll_version()
-    nrf.log(jlink_arm_dll_version)
-    nrf.log(nrfjprog_version.NRFJPROG_VERSION)
+    print(jlink_arm_dll_version)
+    print(nrfjprog_version.NRFJPROG_VERSION)
+
     nrf.cleanup()
