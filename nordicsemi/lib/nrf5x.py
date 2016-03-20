@@ -177,7 +177,8 @@ def readregs(args):
     nrf = NRF5x(args)
     nrf.log('Reading the CPU registers.')
 
-    #nrf.log(nrf.api.enum_emu_snr())
+    for reg in API.CpuRegister:
+        print(nrf.api.read_cpu_register(reg))
 
     nrf.cleanup()
 
@@ -211,7 +212,7 @@ def reset(args):
     nrf.api.go()
     nrf.cleanup()
 
-def run(args):
+def run(args): # TODO: run should accept pc and sp as input.
     nrf = NRF5x(args)
     nrf.log("Running the device's CPU.")
 
