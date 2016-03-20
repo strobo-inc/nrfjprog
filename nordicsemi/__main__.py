@@ -61,6 +61,19 @@ def _add_ids_command(subparsers):
     ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
     ids_parser.set_defaults(func = nrf5x.ids)
 
+def _add_memwr_command(subparsers):
+    """
+    Adds the memwr sub-command to our top-level parser.
+
+    """
+    memwr_parser = subparsers.add_parser('memwr', help = 'Writes to memory.')
+    _add_addr_option(memwr_parser)
+    _add_flash_option(memwr_parser)
+    _add_quiet_option(memwr_parser)
+    _add_snr_option(memwr_parser)
+    _add_val_option(memwr_parser)
+    memwr_parser.set_defaults(func = nrf5x.memwr)
+
 def _add_program_command(subparsers):
     """
     Adds the program sub-command and it's command-line arguments to our top-level parser.
@@ -148,6 +161,13 @@ def _add_reset_group(sub_parsers):
     reset_group.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
     reset_group.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
 
+def _add_addr_option(sub_parsers):
+    """
+    Adds the required addr option to our command.
+
+    """
+    sub_parsers.add_argument('-a', '--addr', type = int, help = 'The address in memory to be read/write.', required = True)
+
 def _add_clockspeed_option(sub_parsers):
     """
     Adds the clockspeed option to our command.
@@ -162,6 +182,13 @@ def _add_file_option(sub_parsers):
     """
     sub_parsers.add_argument('-f', '--file', type = file, help = 'The hex file to be programmed to the device.', required = True)
 
+def _add_flash_option(sub_parsers):
+    """
+    Adds the flash option to our command.
+
+    """
+    sub_parsers.add_argument('--flash', type = int, help = 'If this is 1, we will use NVMC to write FLASH. If unspecified or 0 we will not use NVMC and write RAM.')
+
 def _add_quiet_option(sub_parsers):
     """
     Adds the quiet option to our command.
@@ -175,6 +202,13 @@ def _add_snr_option(sub_parsers):
 
     """
     sub_parsers.add_argument('--snr', type = int, help = 'Selects the debugger with the given serial number among all those connected to the PC for the operation.')
+
+def _add_val_option(sub_parsers):
+    """
+    Adds the value option to our command.
+
+    """
+    sub_parsers.add_argument('--val', type = int, help = 'The data word to be written to memory.', required = True)
 
 def _add_verify_option(sub_parsers):
     """
@@ -193,6 +227,7 @@ def main(argv):
     _add_recover_command(subparsers)
     _add_reset_command(subparsers)
     _add_run_command(subparsers)
+    _add_memwr_command(subparsers)
     _add_verify_command(subparsers)
     _add_version_command(subparsers)
 
@@ -201,4 +236,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
-    
