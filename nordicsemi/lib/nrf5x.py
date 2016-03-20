@@ -136,6 +136,12 @@ def ids(args):
     nrf.log(nrf.api.enum_emu_snr())
     nrf.cleanup()
 
+def memrd(args):
+    nrf = NRF5x(args)
+    nrf.log('reading memory.')
+    #nrf.log(nrf.api.enum_emu_snr())
+    nrf.cleanup()
+
 def memwr(args):
     nrf = NRF5x(args)
     nrf.log('writing memory.')

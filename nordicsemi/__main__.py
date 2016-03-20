@@ -61,6 +61,18 @@ def _add_ids_command(subparsers):
     ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
     ids_parser.set_defaults(func = nrf5x.ids)
 
+def _add_memrd_command(subparsers):
+    """
+    Adds the memrd sub-command to our top-level parser.
+
+    """
+    memrd_parser = subparsers.add_parser('memrd', help = 'Reads memory.')
+    _add_addr_option(memrd_parser)
+    _add_bytes_option(memrd_parser)
+    _add_quiet_option(memrd_parser)
+    _add_snr_option(memrd_parser)
+    memrd_parser.set_defaults(func = nrf5x.memrd)
+
 def _add_memwr_command(subparsers):
     """
     Adds the memwr sub-command to our top-level parser.
@@ -192,6 +204,13 @@ def _add_addr_option(sub_parsers):
     """
     sub_parsers.add_argument('-a', '--addr', type = int, help = 'The address in memory to be read/write.', required = True)
 
+def _add_bytes_option(sub_parsers):
+    """
+    Adds the bytes option to our command.
+
+    """
+    sub_parsers.add_argument('-b', '--bytes', type = int, help = 'The number of bytes to be read. By default 4, one word.', default = 4)
+
 def _add_clockspeed_option(sub_parsers):
     """
     Adds the clockspeed option to our command.
@@ -247,13 +266,14 @@ def main(argv):
     _add_erase_command(subparsers)
     _add_halt_command(subparsers)
     _add_ids_command(subparsers)
+    _add_memrd_command(subparsers)
+    _add_memwr_command(subparsers)
     _add_program_command(subparsers)
     _add_readregs_command(subparsers)
     _add_readtofile_command(subparsers)
     _add_recover_command(subparsers)
     _add_reset_command(subparsers)
     _add_run_command(subparsers)
-    _add_memwr_command(subparsers)
     _add_verify_command(subparsers)
     _add_version_command(subparsers)
 
