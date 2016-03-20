@@ -26,24 +26,24 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from pynrfjprog import API, Hex
-import nrfjprog_version
 import os
+import nrfjprog_version
+
+from pynrfjprog import API, Hex
 
 class NRF5x:
     """
-    Common class that manages the api instance, some shared arguments amongst commands and logging.
+    Common class that manages the api instance, some shared arguments amongst commands, and logging.
 
     """
     def __init__(self, args):
         """
-        Constructor that requires the arguments the command was called with.
+        Constructor that initializes the class's properties.
 
         :param Object args: The arguments the command was called with.
-
         :return: None
         """
-        try: # A bit hacky? quiet may not be an argument for some commands so args.quiet would be undefined causing an error.
+        try: # Quiet may not be an argument for some commands so args.quiet would be undefined causing an error.
             self.clockspeed = args.clockspeed
         except Exception:
             self.clockspeed = None
@@ -84,20 +84,17 @@ class NRF5x:
                 raise e
 
         api.connect_to_device()
-
         return api
 
     def _connect_to_emu(self, api):
-        if self.snr:
-            if self.clockspeed:
-                api.connect_to_emu_with_snr(self.snr, self.clockspeed)
-            else:
-                api.connect_to_emu_with_snr(self.snr)
+        if self.snr and self.clockspeed:
+            api.connect_to_emu_with_snr(self.snr, self.clockspeed)
+        elif self.snr:
+            api.connect_to_emu_with_snr(self.snr)
+        elif self.clockspeed:
+            api.connect_to_emu_without_snr(self.clockspeed)
         else:
-            if self.clockspeed:
-                api.connect_to_emu_without_snr(self.clockspeed)
-            else:
-                api.connect_to_emu_without_snr()
+            api.connect_to_emu_without_snr()
 
     def log(self, msg):
         if self.quiet:
@@ -108,6 +105,11 @@ class NRF5x:
     def cleanup(self):
         self.api.disconnect_from_emu()
         self.api.close()
+
+"""
+The functions that are called from argparse based on the command-line input.
+
+"""
 
 def erase(args):
     nrf = NRF5x(args)
