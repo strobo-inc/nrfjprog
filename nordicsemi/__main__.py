@@ -89,6 +89,30 @@ def _add_program_command(subparsers):
     _add_snr_option(program_parser)
     program_parser.set_defaults(func = nrf5x.program)
 
+def _add_readregs_command(subparsers):
+    """
+    Adds the readregs sub-command and it's command-line arguments to our top-level parser.
+
+    """
+    readregs_parser = subparsers.add_parser('readregs', help = 'Reads the CPU register.')
+    _add_quiet_option(readregs_parser)
+    _add_snr_option(readregs_parser)
+    readregs_parser.set_defaults(func = nrf5x.readregs)
+
+def _add_readtofile_command(subparsers):
+    """
+    Adds the readtofile sub-command and it's command-line arguments to our top-level parser.
+
+    """
+    readtofile_parser = subparsers.add_parser('readtofile', help = 'Reads the CPU register.')
+    _add_file_option(readtofile_parser)
+    _add_quiet_option(readtofile_parser)
+    readtofile_parser.add_argument('--readcode', action = 'store_true', help = 'If this option is specified we will read code FLASH and store in FILE.')
+    readtofile_parser.add_argument('--readram', action = 'store_true', help = 'If this option is specified we will read RAM FLASH and store in FILE.')
+    readtofile_parser.add_argument('--readuicr', action = 'store_true', help = 'If this option is specified we will read UICR FLASH and store in FILE.')
+    _add_snr_option(readtofile_parser)
+    readtofile_parser.set_defaults(func = nrf5x.readtofile)
+
 def _add_recover_command(subparsers):
     """
     Adds the recover sub-command to our top-level parser.
@@ -187,7 +211,7 @@ def _add_flash_option(sub_parsers):
     Adds the flash option to our command.
 
     """
-    sub_parsers.add_argument('--flash', type = int, help = 'If this is 1, we will use NVMC to write FLASH. If unspecified or 0 we will not use NVMC and write RAM.')
+    sub_parsers.add_argument('--flash', action = 'store_true', help = 'If this option is specified we will write to FLASH. If not we will write to RAM.')
 
 def _add_quiet_option(sub_parsers):
     """
@@ -224,6 +248,8 @@ def main(argv):
     _add_halt_command(subparsers)
     _add_ids_command(subparsers)
     _add_program_command(subparsers)
+    _add_readregs_command(subparsers)
+    _add_readtofile_command(subparsers)
     _add_recover_command(subparsers)
     _add_reset_command(subparsers)
     _add_run_command(subparsers)

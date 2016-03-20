@@ -158,6 +158,18 @@ def program(args):
 
     nrf.cleanup()
 
+def readregs(args):
+    nrf = NRF5x(args)
+    nrf.log('reading CPU registers')
+    #nrf.log(nrf.api.enum_emu_snr())
+    nrf.cleanup()
+
+def readtofile(args):
+    nrf = NRF5x(args)
+    nrf.log('reading memory to file')
+    #nrf.log(nrf.api.enum_emu_snr())
+    nrf.cleanup()
+
 def recover(args):
     nrf = NRF5x(args)
     nrf.log('recovering device')
