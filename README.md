@@ -9,7 +9,7 @@ The nrfjprog command line tool implemented in Python. nrfjprog.exe is a tool to 
 2. Clone or download this repository.
 3. Navigate to the repository's directory (~/nrfjprog/).
 4. $ python nrfjprog --help
-5. $ python nrfjprog program PATH_TO_APP.hex --eraseall --verify --systemreset
+5. $ python nrfjprog program --file PATH_TO_APP.hex --eraseall --verify --systemreset
 
 # Structure
 ```python
