@@ -2,7 +2,7 @@
 [![PyPI](https://img.shields.io/pypi/l/Django.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # nrfjprog
-The nrfjprog command line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices.
+The nrfjprog command line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. The goal is to use a tool such as PyInstaller or py2exe to convert this module to an executable. This will give the basic user the option to run nrfjprog without worrying about their python environment and the advanced user to use this module in their custom scripts (i.e. automated testing).
 
 # Running
 1. Download nRF5x Command Line Tools: http://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF52-Preview-DK
@@ -33,3 +33,6 @@ pynrfjprog # Imports the nrfjprog DLL into Python and wraps it to be used in app
 nrfjprogdll # A DLL that does some error checking and calls SEGGER's JLink API. Wraps JLink API specifically for nRF5x devices.
 JLinkARMDLL # Performs all low level operations with our device.
 ```
+
+# Future
+We want nrfjprog to be flexible and open. We want it to be an option for our users all the way from development and testing to production programming. In the future we will open source pynrfjprog as well.
