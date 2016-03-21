@@ -180,12 +180,7 @@ def program(args):
     elif args.sectorsanduicrerase:
         assert (False), "Not implemented in nrf5x.py yet."
 
-    if os.path.exists(args.file.name): # If user specified an absolute path.
-        hex_file_path = args.file.name
-    else: # Otherwise append the path the user specified to nrfjprog/.
-        tmp_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-        tmp_path = os.path.abspath(os.path.join(tmp_path, os.pardir))
-        hex_file_path = os.path.join(tmp_path, args.file.name)
+    hex_file_path = _get_file_path(args.file.name)
     
     # Parse hex, program to device
     nrf.log('# Parsing hex file into segments  ')
@@ -258,7 +253,7 @@ def verify(args):
     nrf = NRF5x(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
-    hex_file_path = args.file.name # TODO: fix file name
+    hex_file_path = _get_file_path(args.file.name)
 
     test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
     for segment in test_program:
@@ -278,6 +273,19 @@ def version(args):
     print(nrfjprog_version.NRFJPROG_VERSION)
 
     nrf.cleanup()
+
+"""
+Helper functions.
+
+"""
+
+def _get_file_path(user_specified_path):
+    if os.path.exists(user_specified_path): # If user specified an absolute path.
+        return user_specified_path
+    else: # Otherwise append the path user specified to nrfjprog/.
+        tmp_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+        tmp_path = os.path.abspath(os.path.join(tmp_path, os.pardir))
+        return os.path.join(tmp_path, user_specified_path)
 
 def _reset(nrf, args):
     if args.debugreset:
