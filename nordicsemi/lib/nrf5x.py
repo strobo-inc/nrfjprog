@@ -172,15 +172,39 @@ def program(args):
     nrf = NRF5x(args)
     nrf.log('Programming the device.')
 
-    module_dir, module_file = os.path.split(__file__)
-    hex_file_path = os.path.join(os.path.abspath(module_dir), args.file.name)
+    if args.eraseall:
+        nrf.api.erase_all()
+    elif args.sectorserase:
+        pass # TODO
+    elif args.sectorsanduicrerase:
+        pass # TODO
+
+    #module_dir, module_file = os.path.split(__file__)
+    #print(module_dir)
+    #hex_file_path = os.path.join(os.path.abspath(module_dir), args.file)
+    hex_file_path = args.file.name # TODO: fix file name
     
     # Parse hex, program to device
     nrf.log('# Parsing hex file into segments  ')
     test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
     nrf.log('# Writing %s to device  ' % hex_file_path)
     for segment in test_program:
+        read_data = nrf.api.read(segment.address, len(segment.data))
+        assert (read_data == ([0xFF] * len(read_data))), 'FLASH being written to must be erased.'
         nrf.api.write(segment.address, segment.data, True)
+        if args.verify:
+            read_data = nrf.api.read(segment.address, len(segment.data))
+            assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
+
+    if args.verify:
+        nrf.log('Programming verified.')
+
+    if args.debugreset:
+        nrf.api.debug_reset()
+    elif args.pinreset:
+        nrf.api.pin_reset()
+    elif args.systemreset:
+        nrf.api.sys_reset()
 
     nrf.cleanup()
 
@@ -197,7 +221,7 @@ def readtofile(args):
     nrf = NRF5x(args)
     nrf.log("Reading and storing the device's memory.")
 
-    #nrf.log(nrf.api.enum_emu_snr())
+    #TODO
 
     nrf.cleanup()
 
@@ -213,12 +237,7 @@ def reset(args):
     nrf = NRF5x(args)
     nrf.log('Resetting the device.')
 
-    if args.debugreset:
-        nrf.api.debug_reset()
-    elif args.pinreset:
-        nrf.api.pin_reset()
-    else:
-        nrf.api.sys_reset()
+    _reset(nrf, args)
     
     nrf.api.go()
     nrf.cleanup()
@@ -235,6 +254,8 @@ def verify(args):
     nrf = NRF5x(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
+    #TODO
+
     nrf.cleanup()
 
 def version(args):
@@ -246,3 +267,11 @@ def version(args):
     print(nrfjprog_version.NRFJPROG_VERSION)
 
     nrf.cleanup()
+
+def _reset(nrf, args):
+    if args.debugreset:
+        nrf.api.debug_reset()
+    elif args.pinreset:
+        nrf.api.pin_reset()
+    else:
+        nrf.api.sys_reset()
