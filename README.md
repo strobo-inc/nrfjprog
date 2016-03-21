@@ -14,6 +14,7 @@ The nrfjprog command line tool implemented in Python. nrfjprog.exe is a tool to 
 # Structure
 ```python
 nrfjprog\
+  # LICENSE, README.md, and requirements.txt (used to install this module). setup.py and tests\ to be added here in the future.
   nordicsemi\
     __init__.py # Package marker to make nordicsemi a module.
     __main__.py # This is where the command line interface is implemented. It parsers arguemnts using argparse and calls nRF5x to perform the requested operation.
@@ -21,4 +22,14 @@ nrfjprog\
       lib\
         __init__.py # Package marker to make lib a module.
         nrf5x.py # This is where the functionality of each command is implemented. Uses the pynrfjprog module.
+```
+# Architecture
+```python
+"""
+Detailed below is how our software is stacked. Each layer depends on the layer below.
+"""
+nrfjprog.exe # Command line tool providing high level programming functionality for nRF5x devices.
+pynrfjprog # Imports the nrfjprog DLL into Python and wraps it to be used in applications like this one or directly in scripts.
+nrfjprogdll # A DLL that does some error checking and calls SEGGER's JLink API. Wraps JLink API specifically for nRF5x devices.
+JLinkARMDLL # Performs all low level operations with our device.
 ```
