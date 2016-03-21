@@ -5,11 +5,11 @@
 The nrfjprog command line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. The goal is to use a tool such as PyInstaller or py2exe to convert this module to an executable. This will give the basic user the option to run nrfjprog without worrying about their python environment and the advanced user to use this module in their custom scripts (i.e. automated testing).
 
 # Running
-1. Download nRF5x Command Line Tools: http://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF52-Preview-DK
-2. $ sudo pip install pynrfjprog
-3. Clone or download this repository.
-4. Navigate to the repository's directory (~/nrfjprog/).
-5. $ python nrfjprog --help
+1. $ sudo pip install pynrfjprog
+2. Clone or download this repository.
+3. Navigate to the repository's directory (~/nrfjprog/).
+4. $ python nrfjprog --help
+5. $ python nrfjprog program --file PATH_TO_APP.hex --eraseall --verify --systemreset
 
 # Structure
 ```python
