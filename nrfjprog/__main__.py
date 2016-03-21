@@ -32,7 +32,7 @@ import sys
 from device import nrf5x
 
 NRFJPROG_DESCRIPTION = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
-NRFJPROG_EPILOG = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nordicsemi COMMAND -h (i.e. python nordicsemi erase -h)."
+NRFJPROG_EPILOG = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nrfjprog COMMAND -h (i.e. python nrfjprog erase -h)."
 
 """
 The top-level positional commands of our command-line interface. These then contain their own unique and shared options.
@@ -161,8 +161,15 @@ The add_argument helper functions. They define how a single command-line argumen
 
 """
 
+def auto_int(x):
+    """
+    Needed in order to accomodate base 16 (hex) and base 10 (decimal) parameters we can enable auto base detection.
+
+    """
+    return int(x, 0)
+
 def _add_addr_argument(subparsers):
-    subparsers.add_argument('-a', '--addr', type = int, help = 'The address in memory to be read/written.', required = True)
+    subparsers.add_argument('-a', '--addr', type = auto_int, help = 'The address in memory to be read/written.', required = True)
 
 def _add_clockspeed_argument(subparsers):
     subparsers.add_argument('-c', '--clockspeed', type = int, metavar = 'CLOCKSPEEDKHZ', help = 'Sets the debugger SWD clock speed in kHz for the operation.')
@@ -174,7 +181,7 @@ def _add_eraseall_argument(subparsers):
     subparsers.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user FLASH including UICR.')
 
 def _add_erasepage_argument(subparsers):
-    subparsers.add_argument('--erasepage', type = int, metavar = 'PAGESTARTADDR', help = 'Erase the page starting at the address PAGESTARTADDR.')
+    subparsers.add_argument('--erasepage', type = auto_int, metavar = 'PAGESTARTADDR', help = 'Erase the page starting at the address PAGESTARTADDR.')
 
 def _add_eraseuicr_argument(subparsers):
     subparsers.add_argument('--eraseuicr', action = 'store_true', help = 'Erase the UICR page in FLASH.')
@@ -186,7 +193,7 @@ def _add_flash_argument(subparsers):
     subparsers.add_argument('--flash', action = 'store_true', help = 'If this argument is specified write to FLASH using the NVMC. Else write to RAM.')
 
 def _add_length_argument(subparsers):
-    subparsers.add_argument('-l', '--length', type = int, help = 'The number of bytes to be read. 4 (one word) by default.', default = 4)
+    subparsers.add_argument('-l', '--length', type = auto_int, help = 'The number of bytes to be read. 4 (one word) by default.', default = 4)
 
 def _add_pinreset_argument(subparsers):
     subparsers.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
@@ -216,7 +223,7 @@ def _add_sysreset_argument(subparsers):
     subparsers.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
 
 def _add_val_argument(subparsers):
-    subparsers.add_argument('--val', type = int, help = 'The 32 bit word to be written to memory.', required = True)
+    subparsers.add_argument('--val', type = auto_int, help = 'The 32 bit word to be written to memory.', required = True)
 
 def _add_verify_argument(subparsers):
     subparsers.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory and verify that it matches FILE.')
@@ -263,3 +270,4 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
+ 

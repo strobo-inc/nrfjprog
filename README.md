@@ -23,6 +23,7 @@ nrfjprog\
         __init__.py # Package marker to make device a module.
         nrf5x.py # This is where the functionality of each command is implemented. Uses the pynrfjprog module.
 ```
+
 # Architecture
 ```python
 """
