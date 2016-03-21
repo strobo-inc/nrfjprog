@@ -78,6 +78,21 @@ class Nrfjprog():
         self.args = self.parser.parse_args()
         self.args.func(self.args)  # Call the default function. (i.e. nRF5x.erase() in the erase command).
 
+class Command():
+    """
+    Class representing a top-level positional command.
+
+    """
+    def __init__(self, parser, callback):
+        """
+        All commands except the 'ids' and 'version' command share these arguments.
+
+        """
+        _add_clockspeed_argument(parser)
+        _add_quiet_argument(parser)
+        _add_snr_argument(parser)
+        parser.set_defaults(func = callback)
+
 """
 The top-level positional commands of our command-line interface. These contain their own unique and shared arguments.
 
@@ -85,17 +100,13 @@ The top-level positional commands of our command-line interface. These contain t
 
 def _add_erase_command(subparsers):
     erase_parser = subparsers.add_parser('erase', help = "Erases the device's FLASH.")
-    _add_clockspeed_argument(erase_parser)
+    Command(erase_parser, nrf5x.erase)
+
     _add_erase_group(erase_parser)
-    _add_quiet_argument(erase_parser)
-    _add_snr_argument(erase_parser)
-    erase_parser.set_defaults(func = nrf5x.erase)
 
 def _add_halt_command(subparsers):
     halt_parser = subparsers.add_parser('halt', help = "Halts the device's CPU.")
-    _add_quiet_argument(halt_parser)
-    _add_snr_argument(halt_parser)
-    halt_parser.set_defaults(func = nrf5x.halt)
+    Command(halt_parser, nrf5x.halt)
 
 def _add_ids_command(subparsers): # This is the only command that doesn't have the snr and quiet option.
     ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
@@ -103,87 +114,68 @@ def _add_ids_command(subparsers): # This is the only command that doesn't have t
 
 def _add_memrd_command(subparsers):
     memrd_parser = subparsers.add_parser('memrd', help = "Reads the device's memory.")
+    Command(memrd_parser, nrf5x.memrd)
+
     _add_addr_argument(memrd_parser)
     _add_length_argument(memrd_parser)
-    _add_quiet_argument(memrd_parser)
-    _add_snr_argument(memrd_parser)
-    memrd_parser.set_defaults(func = nrf5x.memrd)
 
 def _add_memwr_command(subparsers):
     memwr_parser = subparsers.add_parser('memwr', help = "Writes one word in the device's memory.")
+    Command(memwr_parser, nrf5x.memwr)
+
     _add_addr_argument(memwr_parser)
     _add_flash_argument(memwr_parser)
-    _add_quiet_argument(memwr_parser)
-    _add_snr_argument(memwr_parser)
     _add_val_argument(memwr_parser)
-    memwr_parser.set_defaults(func = nrf5x.memwr)
 
 def _add_pinresetenable_command(subparsers):
     pinresetenable_parser = subparsers.add_parser('pinresetenable', help = "Enable the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
-    _add_quiet_argument(pinresetenable_parser)
-    _add_snr_argument(pinresetenable_parser)
-    pinresetenable_parser.set_defaults(func = nrf5x.pinresetenable)
+    Command(pinresetenable_parser, nrf5x.pinresetenable)
 
 def _add_program_command(subparsers):
     program_parser = subparsers.add_parser('program', help = 'Programs the device.')
-    _add_clockspeed_argument(program_parser)
+    Command(program_parser, nrf5x.program)
+
     _add_file_argument(program_parser)
     _add_erase_before_flash_group(program_parser)
-    _add_quiet_argument(program_parser)
     _add_verify_argument(program_parser)
     _add_reset_group(program_parser)
-    _add_snr_argument(program_parser)
-    program_parser.set_defaults(func = nrf5x.program)
 
 def _add_readback_command(subparsers):
     readback_parser = subparsers.add_parser('rbp', help = 'Enables the readback protection mechanism.')
-    _add_quiet_argument(readback_parser)
-    _add_snr_argument(readback_parser)
-    readback_parser.set_defaults(func = nrf5x.readback)
+    Command(readback_parser, nrf5x.readback)
 
 def _add_readregs_command(subparsers):
     readregs_parser = subparsers.add_parser('readregs', help = 'Reads the CPU registers.')
-    _add_quiet_argument(readregs_parser)
-    _add_snr_argument(readregs_parser)
-    readregs_parser.set_defaults(func = nrf5x.readregs)
+    Command(readregs_parser, nrf5x.readregs)
 
 def _add_readtofile_command(subparsers):
     readtofile_parser = subparsers.add_parser('readtofile', help = "Reads and stores the device's memory.")
+    Command(readtofile_parser, nrf5x.readtofile)
+
     _add_file_argument(readtofile_parser)
-    _add_quiet_argument(readtofile_parser)
     _add_readcode_argument(readtofile_parser)
     _add_readram_argument(readtofile_parser)
     _add_readuicr_argument(readtofile_parser)
-    _add_snr_argument(readtofile_parser)
-    readtofile_parser.set_defaults(func = nrf5x.readtofile)
 
 def _add_recover_command(subparsers):
     recover_parser = subparsers.add_parser('recover', help = 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
-    _add_clockspeed_argument(recover_parser)
-    _add_quiet_argument(recover_parser)
-    _add_snr_argument(recover_parser)
-    recover_parser.set_defaults(func = nrf5x.recover)
+    Command(recover_parser, nrf5x.recover)
 
 def _add_reset_command(subparsers):
     reset_parser = subparsers.add_parser('reset', help = 'Resets the device.')
-    _add_quiet_argument(reset_parser)
+    Command(reset_parser, nrf5x.reset)
+
     _add_reset_group(reset_parser)
-    _add_snr_argument(reset_parser)
-    reset_parser.set_defaults(func = nrf5x.reset)
 
 def _add_run_command(subparsers):
     run_parser = subparsers.add_parser('run', help = "Runs the device's CPU.")
-    _add_quiet_argument(run_parser)
-    _add_snr_argument(run_parser)
-    run_parser.set_defaults(func = nrf5x.run)
+    Command(run_parser, nrf5x.run)
 
 def _add_verify_command(subparsers):
     verify_parser = subparsers.add_parser('verify', help = "Verifies that the device's memory contains the correct data.")
-    _add_clockspeed_argument(verify_parser)
-    _add_quiet_argument(verify_parser)
-    _add_snr_argument(verify_parser)
+    Command(verify_parser, nrf5x.verify)
+    
     _add_file_argument(verify_parser)
-    verify_parser.set_defaults(func = nrf5x.verify)
 
 def _add_version_command(subparsers):
     version_parser = subparsers.add_parser('version', help = 'Display the nrfjprog and JLinkARM DLL versions.')
