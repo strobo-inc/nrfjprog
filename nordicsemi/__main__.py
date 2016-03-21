@@ -42,9 +42,7 @@ The top-level positional commands of our command-line interface. These then cont
 def _add_erase_command(subparsers):
     erase_parser = subparsers.add_parser('erase', help = "Erases the device's FLASH.")
     _add_clockspeed_argument(erase_parser)
-    _add_eraseall_argument(erase_parser)
-    # TODO: need a page erase argument.
-    # TODO: need a UICR erase argument.
+    _add_erase_group(erase_parser)
     _add_quiet_argument(erase_parser)
     _add_snr_argument(erase_parser)
     erase_parser.set_defaults(func = nrf5x.erase)
@@ -80,7 +78,7 @@ def _add_program_command(subparsers):
     program_parser = subparsers.add_parser('program', help = 'Programs the device.')
     _add_clockspeed_argument(program_parser)
     _add_file_argument(program_parser)
-    _add_erase_group(program_parser)
+    _add_erase_before_flash_group(program_parser)
     _add_quiet_argument(program_parser)
     _add_verify_argument(program_parser)
     _add_reset_group(program_parser)
@@ -143,8 +141,14 @@ Mutually exclusive groups. argparse will make sure one of the arguments in a mut
 def _add_erase_group(subparsers):
     erase_group = subparsers.add_mutually_exclusive_group()
     _add_eraseall_argument(erase_group)
-    _add_sectors_erase(erase_group)
-    _add_sectorsuicr_erase(erase_group)
+    _add_erasepage_argument(erase_group)
+    _add_eraseuicr_argument(erase_group)
+
+def _add_erase_before_flash_group(subparsers):
+    erase_before_flash_group = subparsers.add_mutually_exclusive_group()
+    _add_eraseall_argument(erase_before_flash_group)
+    _add_sectors_erase(erase_before_flash_group)
+    _add_sectorsuicr_erase(erase_before_flash_group)
 
 def _add_reset_group(subparsers):
     reset_group = subparsers.add_mutually_exclusive_group()
@@ -161,13 +165,19 @@ def _add_addr_argument(subparsers):
     subparsers.add_argument('-a', '--addr', type = int, help = 'The address in memory to be read/written.', required = True)
 
 def _add_clockspeed_argument(subparsers):
-    subparsers.add_argument('-c', '--clockspeed', type = int, help = 'Sets the debugger SWD clock speed in kHz for the operation.')
+    subparsers.add_argument('-c', '--clockspeed', type = int, metavar = 'CLOCKSPEEDKHZ', help = 'Sets the debugger SWD clock speed in kHz for the operation.')
 
 def _add_debugreset_argument(subparsers):
     subparsers.add_argument('-d', '--debugreset', action = 'store_true', help = 'Executes a debug reset.')
 
 def _add_eraseall_argument(subparsers):
     subparsers.add_argument('-e', '--eraseall', action = 'store_true', help = 'Erase all user FLASH including UICR.')
+
+def _add_erasepage_argument(subparsers):
+    subparsers.add_argument('--erasepage', type = int, metavar = 'PAGESTARTADDR', help = 'Erase the page starting at the address PAGESTARTADDR.')
+
+def _add_eraseuicr_argument(subparsers):
+    subparsers.add_argument('--eraseuicr', action = 'store_true', help = 'Erase the UICR page in FLASH.')
 
 def _add_file_argument(subparsers):
     subparsers.add_argument('-f', '--file', type = file, help = 'The hex file to be used in this operation.', required = True)

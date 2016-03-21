@@ -117,7 +117,7 @@ def erase(args):
     nrf.log('Erasing the device.') # This should go to stderr.
 
     if args.erasepage:
-        nrf.api.erase_page(args.erasepage) # TODO: Not working.
+        nrf.api.erase_page(args.erasepage)
     elif args.eraseuicr:
         nrf.api.erase_uicr()
     else:
