@@ -36,7 +36,7 @@ class NRF5x:
     Common class that manages the api instance, some shared arguments amongst commands, and logging.
 
     """
-    def __init__(self, args):
+    def __init__(self, args, do_not_initialize_api = False):
         """
         Constructor that initializes the class's properties.
 
@@ -58,7 +58,10 @@ class NRF5x:
         except Exception:
             self.snr = None
 
-        self.api = self._setup()
+        if do_not_initialize_api:
+            return
+        else:
+            self.api = self._setup()
 
     def _setup(self):
         """
@@ -133,13 +136,16 @@ def halt(args):
 
     nrf.cleanup()
 
-def ids(args): # BUG: We should not connect to anything. _setup is different for this function.
-    nrf = NRF5x(args)
+def ids(args):
+    nrf = NRF5x(args, do_not_initialize_api = True)
     nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
 
-    print(nrf.api.enum_emu_snr()) # This should go to stdout.
+    api = API.API(API.DeviceFamily.NRF51) # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
+    api.open()
 
-    nrf.cleanup()
+    print(api.enum_emu_snr()) # This should go to stdout.
+
+    api.close()
 
 def memrd(args):
     nrf = NRF5x(args)
@@ -200,6 +206,14 @@ def program(args):
 
     nrf.cleanup()
 
+def readback(args):
+    nrf = NRF5x(args)
+    nrf.log('Enabling the readback protection mechanism.')
+
+    nrf.api.readback_protect(API.ReadbackProtection.ALL)
+
+    nrf.cleanup()
+
 def readregs(args):
     nrf = NRF5x(args)
     nrf.log('Reading the CPU registers.')
@@ -219,12 +233,20 @@ def readtofile(args):
     nrf.cleanup()
 
 def recover(args):
-    nrf = NRF5x(args)
+    nrf = NRF5x(args, do_not_initialize_api = True)
     nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
 
-    nrf.api.recover()
-
-    nrf.cleanup()
+    try:
+        nrf._setup(args)
+        nrf.api.recover()
+        nrf.cleanup()
+    except Exception:
+        api = API.API(API.DeviceFamily.NRF52) # If we fail, it has to be an nRF52 device with access port protection enabled.
+        api.open()
+        nrf._connect_to_emu(api)
+        api.recover()
+        api.disconnect_from_emu()
+        api.close()
 
 def reset(args):
     nrf = NRF5x(args)

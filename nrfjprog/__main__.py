@@ -85,6 +85,12 @@ def _add_program_command(subparsers):
     _add_snr_argument(program_parser)
     program_parser.set_defaults(func = nrf5x.program)
 
+def _add_readback_command(subparsers):
+    readback_parser = subparsers.add_parser('rbp', help = 'Enables the readback protection mechanism.')
+    _add_quiet_argument(readback_parser)
+    _add_snr_argument(readback_parser)
+    readback_parser.set_defaults(func = nrf5x.readback)
+
 def _add_readregs_command(subparsers):
     readregs_parser = subparsers.add_parser('readregs', help = 'Reads the CPU registers.')
     _add_quiet_argument(readregs_parser)
@@ -245,6 +251,7 @@ def _add_commands(subparsers):
     _add_memrd_command(subparsers)
     _add_memwr_command(subparsers)
     _add_program_command(subparsers)
+    _add_readback_command(subparsers)
     _add_readregs_command(subparsers)
     _add_readtofile_command(subparsers)
     _add_recover_command(subparsers)
