@@ -182,10 +182,9 @@ def program(args):
 
     hex_file_path = _get_file_path(args.file.name)
     
-    # Parse hex, program to device
-    nrf.log('# Parsing hex file into segments  ')
-    test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
-    nrf.log('# Writing %s to device  ' % hex_file_path)
+    nrf.log('Parsing hex file into segments.')
+    test_program = Hex.Hex(hex_file_path)
+    nrf.log('Writing %s to device.' % hex_file_path)
     for segment in test_program:
         read_data = nrf.api.read(segment.address, len(segment.data))
         assert (read_data == ([0xFF] * len(read_data))), 'FLASH being written to must be erased.'
@@ -197,12 +196,7 @@ def program(args):
     if args.verify:
         nrf.log('Programming verified.')
 
-    if args.debugreset:
-        nrf.api.debug_reset()
-    elif args.pinreset:
-        nrf.api.pin_reset()
-    elif args.systemreset: # BUG: doesn't seem to be working.
-        nrf.api.sys_reset()
+    _reset(nrf, args)
 
     nrf.cleanup()
 
@@ -236,9 +230,8 @@ def reset(args):
     nrf = NRF5x(args)
     nrf.log('Resetting the device.')
 
-    _reset(nrf, args)
+    _reset(nrf, args, True)
     
-    nrf.api.go()
     nrf.cleanup()
 
 def run(args): # TODO: run should accept pc and sp as input.
@@ -287,10 +280,13 @@ def _get_file_path(user_specified_path):
         tmp_path = os.path.abspath(os.path.join(tmp_path, os.pardir))
         return os.path.join(tmp_path, user_specified_path)
 
-def _reset(nrf, args):
+def _reset(nrf, args, default_sys_reset = False):
     if args.debugreset:
         nrf.api.debug_reset()
+        nrf.api.go()
     elif args.pinreset:
         nrf.api.pin_reset()
-    else:
+        nrf.api.go()
+    elif args.systemreset or default_sys_reset:
         nrf.api.sys_reset()
+        nrf.api.go()
