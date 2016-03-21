@@ -28,7 +28,7 @@
 
 import os
 import nrfjprog_version
-
+import numpy as np
 from pynrfjprog import API, Hex
 
 class NRF5x:
@@ -62,6 +62,8 @@ class NRF5x:
             return
         else:
             self.api = self._setup()
+
+        np.set_printoptions(formatter={'int':hex}) # So we output values displayed as hex instead of dec.
 
     def _setup(self):
         """
@@ -143,7 +145,8 @@ def ids(args):
     api = API.API(API.DeviceFamily.NRF51) # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
     api.open()
 
-    print(api.enum_emu_snr()) # This should go to stdout.
+    ids = api.enum_emu_snr()
+    print(sorted(ids)) # This should go to stdout.
 
     api.close()
 
@@ -159,7 +162,7 @@ def memrd(args):
     assert(length > 0), 'Length (number of bytes to read) must be nonnegative.'
 
     read_data = nrf.api.read(args.addr, length)
-    print(read_data)
+    print(np.array(read_data))
 
     nrf.cleanup()
 
@@ -227,7 +230,7 @@ def readregs(args):
     nrf.log('Reading the CPU registers.')
 
     for reg in API.CpuRegister:
-        print(nrf.api.read_cpu_register(reg))
+        print(hex(nrf.api.read_cpu_register(reg)))
 
     nrf.cleanup()
 
