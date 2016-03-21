@@ -29,7 +29,7 @@
 import argparse
 import sys
 
-from lib import nrf5x
+from device import nrf5x
 
 NRFJPROG_DESCRIPTION = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
 NRFJPROG_EPILOG = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nordicsemi COMMAND -h (i.e. python nordicsemi erase -h)."
@@ -53,7 +53,7 @@ def _add_halt_command(subparsers):
     _add_snr_argument(halt_parser)
     halt_parser.set_defaults(func = nrf5x.halt)
 
-def _add_ids_command(subparsers):
+def _add_ids_command(subparsers): # This is the only command that doesn't have the snr and quiet option.
     ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
     ids_parser.set_defaults(func = nrf5x.ids)
 
@@ -66,7 +66,7 @@ def _add_memrd_command(subparsers):
     memrd_parser.set_defaults(func = nrf5x.memrd)
 
 def _add_memwr_command(subparsers):
-    memwr_parser = subparsers.add_parser('memwr', help = "Writes the device's memory.")
+    memwr_parser = subparsers.add_parser('memwr', help = "Writes one word in the device's memory.")
     _add_addr_argument(memwr_parser)
     _add_flash_argument(memwr_parser)
     _add_quiet_argument(memwr_parser)
