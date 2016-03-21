@@ -31,11 +31,55 @@ import sys
 
 from device import nrf5x
 
-NRFJPROG_DESCRIPTION = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
-NRFJPROG_EPILOG = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nrfjprog COMMAND -h (i.e. python nrfjprog erase -h)."
+class Nrfjprog():
+    """
+    Initializes and runs our command-line application.
+
+    """
+    NRFJPROG_DESCRIPTION = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
+    NRFJPROG_EPILOG = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nrfjprog COMMAND -h (i.e. python nrfjprog erase -h)."
+
+    def __init__(self):
+        """
+        Initialize our command-line interface.
+
+        """
+        self.parser = argparse.ArgumentParser(description = self.NRFJPROG_DESCRIPTION, epilog = self.NRFJPROG_EPILOG)
+        self.subparsers = self.parser.add_subparsers()
+        self._add_commands(self.subparsers)
+
+    def _add_commands(self, subparsers):
+        """
+        Split up the functionality of nrfjprog into multiple sub-commands because nrfjprog performs several different functions which require different command-line arguments.
+        
+        :param Special Action Object subparsers: https://docs.python.org/3/library/argparse.html#sub-commands
+        """
+        _add_erase_command(subparsers)
+        _add_halt_command(subparsers)
+        _add_ids_command(subparsers)
+        _add_memrd_command(subparsers)
+        _add_memwr_command(subparsers)
+        _add_pinresetenable_command(subparsers)
+        _add_program_command(subparsers)
+        _add_readback_command(subparsers)
+        _add_readregs_command(subparsers)
+        _add_readtofile_command(subparsers)
+        _add_recover_command(subparsers)
+        _add_reset_command(subparsers)
+        _add_run_command(subparsers)
+        _add_verify_command(subparsers)
+        _add_version_command(subparsers)
+
+    def start(self):
+        """
+        Parse user input and execute the requested functionality.
+
+        """
+        self.args = self.parser.parse_args()
+        self.args.func(self.args)  # Call the default function. (i.e. nRF5x.erase() in the erase command).
 
 """
-The top-level positional commands of our command-line interface. These then contain their own unique and shared options.
+The top-level positional commands of our command-line interface. These contain their own unique and shared arguments.
 
 """
 
@@ -173,13 +217,6 @@ The add_argument helper functions. They define how a single command-line argumen
 
 """
 
-def auto_int(x):
-    """
-    Needed in order to accomodate base 16 (hex) and base 10 (decimal) parameters we can enable auto base detection.
-
-    """
-    return int(x, 0)
-
 def _add_addr_argument(subparsers):
     subparsers.add_argument('-a', '--addr', type = auto_int, help = 'The address in memory to be read/written.', required = True)
 
@@ -241,31 +278,17 @@ def _add_verify_argument(subparsers):
     subparsers.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory and verify that it matches FILE.')
 
 """
-The top-level functionality of our command-line application.
+Helpers.
 
 """
 
-def _add_commands(subparsers):
+def auto_int(x):
     """
-    Split up the functionality of nrfjprog into multiple sub-commands because nrfjprog performs several different functions which require different command-line arguments.
-    
-    :param Special Action Object subparsers: https://docs.python.org/3/library/argparse.html#sub-commands
+    Needed in order to accomodate base 16 (hex) and base 10 (decimal) parameters we can enable auto base detection.
+
     """
-    _add_erase_command(subparsers)
-    _add_halt_command(subparsers)
-    _add_ids_command(subparsers)
-    _add_memrd_command(subparsers)
-    _add_memwr_command(subparsers)
-    _add_pinresetenable_command(subparsers)
-    _add_program_command(subparsers)
-    _add_readback_command(subparsers)
-    _add_readregs_command(subparsers)
-    _add_readtofile_command(subparsers)
-    _add_recover_command(subparsers)
-    _add_reset_command(subparsers)
-    _add_run_command(subparsers)
-    _add_verify_command(subparsers)
-    _add_version_command(subparsers)
+    return int(x, 0)
+
 
 def main(argv):
     """
@@ -274,13 +297,8 @@ def main(argv):
     Above we will define what arguments our program requires and argparse will figure out how to parse those from sys.argv.
     For info on argparse see: https://docs.python.org/3/library/argparse.html.
     """
-    parser = argparse.ArgumentParser(description = NRFJPROG_DESCRIPTION, epilog = NRFJPROG_EPILOG)
-    subparsers = parser.add_subparsers()
-
-    _add_commands(subparsers)
-
-    args = parser.parse_args()
-    args.func(args)  # Call the default function. (i.e. nRF5x.erase() in the erase command).
+    cli = Nrfjprog()
+    cli.start()
 
 if __name__ == '__main__':
     main(sys.argv)
