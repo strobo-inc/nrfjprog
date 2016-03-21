@@ -133,7 +133,7 @@ def halt(args):
 
     nrf.cleanup()
 
-def ids(args):
+def ids(args): # BUG: We should not connect to anything. _setup is different for this function.
     nrf = NRF5x(args)
     nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
 
@@ -145,7 +145,15 @@ def memrd(args):
     nrf = NRF5x(args)
     nrf.log("Reading the device's memory.")
 
-    #nrf.log(nrf.api.enum_emu_snr())
+    if args.length:
+        length = args.length
+    else:
+        length = 4
+
+    assert(length > 0), 'Length (number of bytes to read) must be nonnegative.'
+
+    read_data = nrf.api.read(args.addr, length)
+    print(read_data)
 
     nrf.cleanup()
 
@@ -153,7 +161,10 @@ def memwr(args):
     nrf = NRF5x(args)
     nrf.log("Writing the device's memory.")
 
-    #nrf.log(nrf.api.enum_emu_snr())
+    if args.flash:
+        nrf.api.write_u32(args.addr, args.val, True)
+    else:
+        nrf.api.write_u32(args.addr, args.val, False)
 
     nrf.cleanup()
 
