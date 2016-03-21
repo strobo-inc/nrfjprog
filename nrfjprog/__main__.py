@@ -74,6 +74,12 @@ def _add_memwr_command(subparsers):
     _add_val_argument(memwr_parser)
     memwr_parser.set_defaults(func = nrf5x.memwr)
 
+def _add_pinresetenable_command(subparsers):
+    pinresetenable_parser = subparsers.add_parser('pinresetenable', help = "Enable the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+    _add_quiet_argument(pinresetenable_parser)
+    _add_snr_argument(pinresetenable_parser)
+    pinresetenable_parser.set_defaults(func = nrf5x.pinresetenable)
+
 def _add_program_command(subparsers):
     program_parser = subparsers.add_parser('program', help = 'Programs the device.')
     _add_clockspeed_argument(program_parser)
@@ -250,6 +256,7 @@ def _add_commands(subparsers):
     _add_ids_command(subparsers)
     _add_memrd_command(subparsers)
     _add_memwr_command(subparsers)
+    _add_pinresetenable_command(subparsers)
     _add_program_command(subparsers)
     _add_readback_command(subparsers)
     _add_readregs_command(subparsers)

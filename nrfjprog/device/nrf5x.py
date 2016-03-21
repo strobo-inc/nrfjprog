@@ -175,6 +175,14 @@ def memwr(args):
 
     nrf.cleanup()
 
+def pinresetenable(args):
+    nrf = NRF5x(args)
+    nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+
+    assert (false), 'Not implemented yet.'
+
+    nrf.cleanup()
+
 def program(args):
     nrf = NRF5x(args)
     nrf.log('Programming the device.')
