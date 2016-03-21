@@ -164,6 +164,7 @@ def memwr(args):
     if args.flash:
         nrf.api.write_u32(args.addr, args.val, True)
     else:
+        assert(args.addr >= 0x80000), "The --flash option needs to be specified when writing FLASH." # Won't catch UICR writes but better than nothing for now...
         nrf.api.write_u32(args.addr, args.val, False)
 
     nrf.cleanup()
@@ -179,10 +180,12 @@ def program(args):
     elif args.sectorsanduicrerase:
         assert (False), "Not implemented in nrf5x.py yet."
 
-    #module_dir, module_file = os.path.split(__file__)
-    #print(module_dir)
-    #hex_file_path = os.path.join(os.path.abspath(module_dir), args.file)
-    hex_file_path = args.file.name # TODO: fix file name
+    if os.path.exists(args.file.name): # If user specified an absolute path.
+        hex_file_path = args.file.name
+    else: # Otherwise append the path the user specified to nrfjprog/.
+        tmp_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+        tmp_path = os.path.abspath(os.path.join(tmp_path, os.pardir))
+        hex_file_path = os.path.join(tmp_path, args.file.name)
     
     # Parse hex, program to device
     nrf.log('# Parsing hex file into segments  ')
@@ -203,7 +206,7 @@ def program(args):
         nrf.api.debug_reset()
     elif args.pinreset:
         nrf.api.pin_reset()
-    elif args.systemreset:
+    elif args.systemreset: # BUG: doesn't seem to be working.
         nrf.api.sys_reset()
 
     nrf.cleanup()
