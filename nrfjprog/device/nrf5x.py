@@ -291,14 +291,17 @@ def verify(args):
     nrf.cleanup()
 
 def version(args):
-    nrf = NRF5x(args)
+    nrf = NRF5x(args, do_not_initialize_api = True)
     nrf.log('Displaying the nrfjprog and JLinkARM DLL versions.')
 
-    jlink_arm_dll_version = nrf.api.dll_version()
+    api = API.API(API.DeviceFamily.NRF51) # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
+    api.open()
+
+    jlink_arm_dll_version = api.dll_version()
     print(jlink_arm_dll_version)
     print(nrfjprog_version.NRFJPROG_VERSION)
 
-    nrf.cleanup()
+    api.close()
 
 """
 Helper functions.

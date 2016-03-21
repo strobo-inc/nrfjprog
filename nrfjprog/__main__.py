@@ -70,7 +70,7 @@ class Nrfjprog():
         _add_verify_command(subparsers)
         _add_version_command(subparsers)
 
-    def start(self):
+    def run(self):
         """
         Parse user input and execute the requested functionality.
 
@@ -174,7 +174,7 @@ def _add_run_command(subparsers):
 def _add_verify_command(subparsers):
     verify_parser = subparsers.add_parser('verify', help = "Verifies that the device's memory contains the correct data.")
     Command(verify_parser, nrf5x.verify)
-    
+
     _add_file_argument(verify_parser)
 
 def _add_version_command(subparsers):
@@ -290,7 +290,7 @@ def main(argv):
     For info on argparse see: https://docs.python.org/3/library/argparse.html.
     """
     cli = Nrfjprog()
-    cli.start()
+    cli.run()
 
 if __name__ == '__main__':
     main(sys.argv)
