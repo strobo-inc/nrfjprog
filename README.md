@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mjdietzx/nrfjprog.svg?branch=develop)](https://travis-ci.org/mjdietzx/nrfjprog)
+[![Build Status](https://travis-ci.org/mjdietzx/nrfjprog.svg?branch=master)](https://travis-ci.org/mjdietzx/nrfjprog)
 [![PyPI](https://img.shields.io/pypi/l/Django.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # nrfjprog
