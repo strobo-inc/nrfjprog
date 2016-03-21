@@ -254,7 +254,14 @@ def verify(args):
     nrf = NRF5x(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
-    #TODO
+    hex_file_path = args.file.name # TODO: fix file name
+
+    test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
+    for segment in test_program:
+        read_data = nrf.api.read(segment.address, len(segment.data))
+        assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
+
+    nrf.log('Programming verified.')
 
     nrf.cleanup()
 
