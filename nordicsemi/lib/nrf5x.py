@@ -175,9 +175,9 @@ def program(args):
     if args.eraseall:
         nrf.api.erase_all()
     elif args.sectorserase:
-        pass # TODO
+        assert (False), "Not implemented in nrf5x.py yet."
     elif args.sectorsanduicrerase:
-        pass # TODO
+        assert (False), "Not implemented in nrf5x.py yet."
 
     #module_dir, module_file = os.path.split(__file__)
     #print(module_dir)
@@ -222,6 +222,7 @@ def readtofile(args):
     nrf.log("Reading and storing the device's memory.")
 
     #TODO
+    assert (False), "Not implemented in nrf5x.py yet."
 
     nrf.cleanup()
 
