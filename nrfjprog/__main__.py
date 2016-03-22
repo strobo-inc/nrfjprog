@@ -33,7 +33,7 @@ from device import nrf5x
 
 class Nrfjprog():
     """
-    Initializes and runs our command-line application.
+    Class to handle the command-line interface.
 
     """
     NRFJPROG_DESCRIPTION = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
@@ -41,7 +41,7 @@ class Nrfjprog():
 
     def __init__(self):
         """
-        Initialize our command-line interface.
+        Initializes the command-line interface.
 
         """
         self.parser = argparse.ArgumentParser(description = self.NRFJPROG_DESCRIPTION, epilog = self.NRFJPROG_EPILOG)
@@ -50,9 +50,9 @@ class Nrfjprog():
 
     def _add_commands(self, subparsers):
         """
-        Split up the functionality of nrfjprog into multiple sub-commands because nrfjprog performs several different functions which require different command-line arguments.
+        Split up the functionality of nrfjprog into multiple sub-commands. Add each of these commands to the command-line interface. Each command then has shared and unique arguments.
         
-        :param Special Action Object subparsers: https://docs.python.org/3/library/argparse.html#sub-commands
+        :param Special Action Object subparsers: https://docs.python.org/3/library/argparse.html#sub-commands.
         """
         _add_erase_command(subparsers)
         _add_halt_command(subparsers)
@@ -80,21 +80,27 @@ class Nrfjprog():
 
 class Command():
     """
-    Class representing a top-level positional command.
+    Class handling the creation of a command. Adds the common arguments each command shares and specifies the callback that will perform the requested functionality.
 
+    @param ArgumentParser parser:   The top-level positional command to add the shared arguments to.
+    @param func           callback: Function that performs operation for given command.
+    @param boolean        connects: If this command connects to the emulator (debugger) and should have the option to set the clock speed/serial number.
     """
-    def __init__(self, parser, callback):
+    def __init__(self, parser, callback, connects = True):
         """
         All commands except the 'ids' and 'version' command share these arguments.
 
         """
-        _add_clockspeed_argument(parser)
         _add_quiet_argument(parser)
-        _add_snr_argument(parser)
+
+        if connects == True:
+            _add_clockspeed_argument(parser)
+            _add_snr_argument(parser)
+
         parser.set_defaults(func = callback)
 
 """
-The top-level positional commands of our command-line interface. These contain their own unique and shared arguments.
+The top-level positional commands of our command-line interface. These add shared arguments with Command() and then add unique arguments.
 
 """
 
@@ -110,7 +116,7 @@ def _add_halt_command(subparsers):
 
 def _add_ids_command(subparsers): # This is the only command that doesn't have the snr and quiet option.
     ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
-    ids_parser.set_defaults(func = nrf5x.ids)
+    Command(ids_parser, nrf5x.ids, connects = False)
 
 def _add_memrd_command(subparsers):
     memrd_parser = subparsers.add_parser('memrd', help = "Reads the device's memory.")
@@ -171,6 +177,9 @@ def _add_run_command(subparsers):
     run_parser = subparsers.add_parser('run', help = "Runs the device's CPU.")
     Command(run_parser, nrf5x.run)
 
+    _add_pc_argument(run_parser)
+    _add_sp_argument(run_parser)
+
 def _add_verify_command(subparsers):
     verify_parser = subparsers.add_parser('verify', help = "Verifies that the device's memory contains the correct data.")
     Command(verify_parser, nrf5x.verify)
@@ -179,10 +188,10 @@ def _add_verify_command(subparsers):
 
 def _add_version_command(subparsers):
     version_parser = subparsers.add_parser('version', help = 'Display the nrfjprog and JLinkARM DLL versions.')
-    version_parser.set_defaults(func = nrf5x.version)
+    Command(version_parser, nrf5x.version, connects = False)
 
 """
-Mutually exclusive groups. argparse will make sure one of the arguments in a mutually exclusive group was present on the command-line.
+Mutually exclusive groups. argparse will make sure only one of the arguments in a mutually exclusive group was present on the command-line.
 
 """
 
@@ -236,6 +245,9 @@ def _add_flash_argument(subparsers):
 def _add_length_argument(subparsers):
     subparsers.add_argument('-l', '--length', type = auto_int, help = 'The number of bytes to be read. 4 (one word) by default.', default = 4)
 
+def _add_pc_argument(subparsers):
+    subparsers.add_argument('--pc', type = auto_int, metavar = 'PC_ADDR', help = 'Initial program counter to start the CPU running from.')
+
 def _add_pinreset_argument(subparsers):
     subparsers.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
 
@@ -260,6 +272,9 @@ def _add_sectorsuicr_erase(subparsers):
 def _add_snr_argument(subparsers):
     subparsers.add_argument('-s', '--snr', type = int, help = 'Selects the debugger with the given serial number among all those connected to the PC for the operation.')
 
+def _add_sp_argument(subparsers):
+    subparsers.add_argument('--sp', type = auto_int, metavar = 'SP_ADDR', help = 'Initial stack pointer.')
+
 def _add_sysreset_argument(subparsers):
     subparsers.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')
 
@@ -276,7 +291,7 @@ Helpers.
 
 def auto_int(x):
     """
-    Needed in order to accomodate base 16 (hex) and base 10 (decimal) parameters we can enable auto base detection.
+    Needed in order to accommodate base 16 (hex) and base 10 (decimal) parameters we can enable auto base detection.
 
     """
     return int(x, 0)
@@ -294,4 +309,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
- 

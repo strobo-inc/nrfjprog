@@ -33,37 +33,24 @@ from pynrfjprog import API, Hex
 
 class NRF5x:
     """
-    Common class that manages the api instance, some shared arguments amongst commands, and logging.
+    Class that handles the api instance, some arguments that commands share, and logging.
 
     """
     def __init__(self, args, do_not_initialize_api = False):
         """
-        Constructor that initializes the class's properties.
+        Initialize api (the connection to the target device) and the class's properties.
 
-        :param Object args: The arguments the command was called with.
-        :return: None
+        :param Object  args:                  The arguments the command was called with.
+        :param boolean do_not_initialize_api: If api should be intialized (the connection to the target device should be set up).
         """
-        try: # Quiet may not be an argument for some commands so args.quiet would be undefined causing an error.
-            self.clockspeed = args.clockspeed
-        except Exception:
-            self.clockspeed = None
-
-        try:
-            self.quiet = args.quiet
-        except Exception:
-            self.quiet = None
-
-        try:
-            self.snr = args.snr
-        except Exception:
-            self.snr = None
+        self.args = args
 
         if do_not_initialize_api:
-            return
+            pass
         else:
             self.api = self._setup()
 
-        np.set_printoptions(formatter={'int':hex}) # So we output values displayed as hex instead of dec.
+        np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
     def _setup(self):
         """
@@ -77,7 +64,7 @@ class NRF5x:
         self._connect_to_emu(api)
         
         try:
-            device_version = api.read_device_version()
+            api.connect_to_device()
         except API.APIError as e:
             if e.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
                 device_family = API.DeviceFamily.NRF52
@@ -85,24 +72,24 @@ class NRF5x:
                 api = API.API(device_family)
                 api.open()
                 self._connect_to_emu(api)
+                api.connect_to_device()
             else:
                 raise e
-
-        api.connect_to_device()
+                
         return api
 
     def _connect_to_emu(self, api):
-        if self.snr and self.clockspeed:
-            api.connect_to_emu_with_snr(self.snr, self.clockspeed)
-        elif self.snr:
-            api.connect_to_emu_with_snr(self.snr)
-        elif self.clockspeed:
-            api.connect_to_emu_without_snr(self.clockspeed)
+        if self.args.snr and self.args.clockspeed:
+            api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
+        elif self.args.snr:
+            api.connect_to_emu_with_snr(self.args.snr)
+        elif self.args.clockspeed:
+            api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
             api.connect_to_emu_without_snr()
 
     def log(self, msg):
-        if self.quiet:
+        if self.args.quiet:
             pass
         else:
             print(msg)
@@ -112,14 +99,14 @@ class NRF5x:
         self.api.close()
 
 """
-The functions that are called from argparse based on the command-line input.
+The callback functions that are called from __main__.py (argparse) based on the command-line input.
 
 All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
 """
 
 def erase(args):
     nrf = NRF5x(args)
-    nrf.log('Erasing the device.') # This should go to stderr.
+    nrf.log('Erasing the device.')
 
     if args.erasepage:
         nrf.api.erase_page(args.erasepage)
@@ -146,7 +133,7 @@ def ids(args):
     api.open()
 
     ids = api.enum_emu_snr()
-    print(sorted(ids)) # This should go to stdout.
+    print(sorted(ids))
 
     api.close()
 
@@ -154,14 +141,7 @@ def memrd(args):
     nrf = NRF5x(args)
     nrf.log("Reading the device's memory.")
 
-    if args.length:
-        length = args.length
-    else:
-        length = 4
-
-    assert(length > 0), 'Length (number of bytes to read) must be nonnegative.'
-
-    read_data = nrf.api.read(args.addr, length)
+    read_data = nrf.api.read(args.addr, args.length)
     print(np.array(read_data))
 
     nrf.cleanup()
@@ -170,19 +150,21 @@ def memwr(args):
     nrf = NRF5x(args)
     nrf.log("Writing the device's memory.")
 
-    if args.flash:
-        nrf.api.write_u32(args.addr, args.val, True)
-    else:
-        assert(args.addr >= 0x80000), "The --flash option needs to be specified when writing FLASH." # Won't catch UICR writes but better than nothing for now...
-        nrf.api.write_u32(args.addr, args.val, False)
+    nrf.api.write_u32(args.addr, args.val, args.flash)
 
     nrf.cleanup()
 
 def pinresetenable(args):
     nrf = NRF5x(args)
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+  
+    UICR_PSELRESET0_ADDR = 0x10001200
+    UICR_PSELRESET1_ADDR = 0x10001204
+    UICR_PSELRESET_21_CONNECT = 0x8FFFFF15 # Writes the connect bit field and 21 pin bit field (reset is connected and GPIO pin 21 is selected as the reset).
 
-    assert (false), 'Not implemented yet.'
+    nrf.api.write_u32(UICR_PSELRESET0_ADDR, UICR_PSELRESET_21_CONNECT, True)
+    nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
+    nrf.api.sys_reset()
 
     nrf.cleanup()
 
@@ -263,7 +245,7 @@ def reset(args):
     nrf = NRF5x(args)
     nrf.log('Resetting the device.')
 
-    _reset(nrf, args, True)
+    _reset(nrf, args, default_sys_reset = True)
     
     nrf.cleanup()
 
@@ -271,7 +253,12 @@ def run(args): # TODO: run should accept pc and sp as input.
     nrf = NRF5x(args)
     nrf.log("Running the device's CPU.")
 
-    nrf.api.go()
+    if args.pc != None and args.sp != None:
+        nrf.api.run(args.pc, args.sp)
+    elif args.pc != None or args.sp != None:
+        assert (False), 'Both the PC and the SP must be specified.'
+    else:
+        nrf.api.go()
 
     nrf.cleanup()
 
@@ -281,12 +268,12 @@ def verify(args):
 
     hex_file_path = _get_file_path(args.file.name)
 
-    test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
-    for segment in test_program:
+    hex_file = Hex.Hex(hex_file_path)
+    for segment in hex_file:
         read_data = nrf.api.read(segment.address, len(segment.data))
         assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
 
-    nrf.log('Programming verified.')
+    nrf.log('Verified.')
 
     nrf.cleanup()
 
