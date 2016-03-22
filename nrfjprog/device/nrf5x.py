@@ -43,13 +43,11 @@ class NRF5x:
         :param Object  args:                  The arguments the command was called with.
         :param boolean do_not_initialize_api: If api should be intialized (the connection to the target device should be set up).
         """
-        self.quiet = args.quiet # All commands are to have the quiet argument.
+        self.args = args
 
         if do_not_initialize_api:
-            return
+            pass
         else:
-            self.clockspeed = args.clockspeed # Any commands that connect to the emulator (debugger) are to have the clock speed/serial number arguments.
-            self.snr = args.snr
             self.api = self._setup()
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
@@ -81,17 +79,17 @@ class NRF5x:
         return api
 
     def _connect_to_emu(self, api):
-        if self.snr and self.clockspeed:
-            api.connect_to_emu_with_snr(self.snr, self.clockspeed)
-        elif self.snr:
-            api.connect_to_emu_with_snr(self.snr)
-        elif self.clockspeed:
-            api.connect_to_emu_without_snr(self.clockspeed)
+        if self.args.snr and self.args.clockspeed:
+            api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
+        elif self.args.snr:
+            api.connect_to_emu_with_snr(self.args.snr)
+        elif self.args.clockspeed:
+            api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
             api.connect_to_emu_without_snr()
 
     def log(self, msg):
-        if self.quiet:
+        if self.args.quiet:
             pass
         else:
             print(msg)
@@ -270,12 +268,12 @@ def verify(args):
 
     hex_file_path = _get_file_path(args.file.name)
 
-    test_program = Hex.Hex(hex_file_path) # Parse .hex file into segments
-    for segment in test_program:
+    hex_file = Hex.Hex(hex_file_path)
+    for segment in hex_file:
         read_data = nrf.api.read(segment.address, len(segment.data))
         assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
 
-    nrf.log('Programming verified.')
+    nrf.log('Verified.')
 
     nrf.cleanup()
 
