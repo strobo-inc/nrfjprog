@@ -30,6 +30,7 @@ import os
 import nrfjprog_version
 import numpy as np
 from pynrfjprog import API, Hex
+from device.error_check import NRF5xDevice
 
 class NRF5x:
     """
@@ -51,6 +52,8 @@ class NRF5x:
             pass
         else:
             self._setup()
+
+        NRF5xDevice(self.device_version)
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
@@ -121,6 +124,7 @@ def halt(args):
     nrf.log("Halting the device's CPU.")
 
     nrf.api.halt()
+    print(nrf.device_version)
 
     nrf.cleanup_api()
 
