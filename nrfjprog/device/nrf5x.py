@@ -33,37 +33,26 @@ from pynrfjprog import API, Hex
 
 class NRF5x:
     """
-    Common class that manages the api instance, some shared arguments amongst commands, and logging.
+    Class that handles the api instance, some arguments that commands share, and logging.
 
     """
     def __init__(self, args, do_not_initialize_api = False):
         """
-        Constructor that initializes the class's properties.
+        Initialize api (the connection to the target device) and the class's properties.
 
-        :param Object args: The arguments the command was called with.
-        :return: None
+        :param Object  args:                  The arguments the command was called with.
+        :param boolean do_not_initialize_api: If api should be intialized (the connection to the target device should be set up).
         """
-        try: # Quiet may not be an argument for some commands so args.quiet would be undefined causing an error.
-            self.clockspeed = args.clockspeed
-        except Exception:
-            self.clockspeed = None
-
-        try:
-            self.quiet = args.quiet
-        except Exception:
-            self.quiet = None
-
-        try:
-            self.snr = args.snr
-        except Exception:
-            self.snr = None
+        self.quiet = args.quiet # All commands are to have the quiet argument.
 
         if do_not_initialize_api:
             return
         else:
+            self.clockspeed = args.clockspeed # Any commands that connect to the emulator (debugger) are to have the clock speed/serial number arguments.
+            self.snr = args.snr
             self.api = self._setup()
 
-        np.set_printoptions(formatter={'int':hex}) # So we output values displayed as hex instead of dec.
+        np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
     def _setup(self):
         """
@@ -112,7 +101,7 @@ class NRF5x:
         self.api.close()
 
 """
-The functions that are called from argparse based on the command-line input.
+The callback functions that are called from __main__.py (argparse) based on the command-line input.
 
 All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
 """
