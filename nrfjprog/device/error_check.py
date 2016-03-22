@@ -55,6 +55,10 @@ class NRF5xDevice:
     UICR_START = 0x10001000
 
     def __init__(self, device_version):
+        """
+        Initialize the device specific specs.
+
+        """
         self.FLASH_END = self.FLASH_START + FLASH_SIZE[device_version]
         self.RAM_END = self.RAM_START + RAM_SIZE[device_version]
 
@@ -63,12 +67,10 @@ class NRF5xDevice:
         self.FICR_END = self.FICR_START + self.PAGE_SIZE
         self.UICR_END = self.UICR_START + self.PAGE_SIZE
 
-    def _assert(self, condition):
-        """
-        How do we want to return errors?
+        self.FLASH_SIZE = self.FLASH_END - self.FLASH_START
+        self.RAM_SIZE = self.RAM_END - self.RAM_START
 
-        """
-        assert(condition), 'ERROR!'
+        self.NUMBER_OF_FLASH_PAGES_IN_CODE = self.FLASH_SIZE / self.PAGE_SIZE
 
     def error_check(self, args):
         """
@@ -78,7 +80,20 @@ class NRF5xDevice:
         """
         self._in_args(args)
 
-        self._assert(self.val >= 0 and self.val <= MAX_UNSIGNED_32_BIT)
+        if self.erasepage != None:
+            page_number = self.erasepage % self.PAGE_SIZE
+            self._assert(page_number == 0 and (self.erasepage / self.PAGE_SIZE) < self.NUMBER_OF_FLASH_PAGES_IN_CODE)
+        if self.length != None:
+            self._assert(self.length > 0)
+        if self.val != None:
+            self._assert(self.val >= 0 and self.val <= MAX_UNSIGNED_32_BIT)
+
+    def _assert(self, condition):
+        """
+        How do we want to return errors?
+
+        """
+        assert(condition), 'ERROR!'
 
     def _in_args(self, args):
         """
@@ -88,28 +103,28 @@ class NRF5xDevice:
         try:
             self.addr = args.addr
         except:
-            pass
+            self.addr = None
         try:
             self.erasepage = args.erasepage
         except:
-            pass
+            self.erasepage = None
         try:
             self.file = args.file
         except:
-            pass
+            self.file = None
         try:
             self.length = args.length
         except:
-            pass
+            self.length = None
         try:
             self.pc = args.pc
         except:
-            pass
+            self.pc = None
         try:
             self.sp = args.sp
         except:
-            pass
+            self.sp = None
         try:
             self.val = args.val
         except:
-            pass
+            self.val = None

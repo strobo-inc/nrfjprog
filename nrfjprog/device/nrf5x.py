@@ -52,9 +52,8 @@ class NRF5x:
             pass
         else:
             self._setup()
-
-        nRFDevice = NRF5xDevice(self.device_version)
-        nRFDevice.error_check(args)
+            nRFDevice = NRF5xDevice(self.device_version)
+            nRFDevice.error_check(self.args)
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
@@ -161,6 +160,8 @@ def memwr(args):
 def pinresetenable(args):
     nrf = NRF5x(args)
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+
+    assert(nrf.device_version[:5] != 'NRF51'), "Enabling pin reset is not a valid command for nRF51 devices."
   
     UICR_PSELRESET0_ADDR = 0x10001200
     UICR_PSELRESET1_ADDR = 0x10001204
