@@ -64,7 +64,7 @@ class NRF5x:
         self._connect_to_emu(api)
         
         try:
-            device_version = api.read_device_version()
+            api.connect_to_device()
         except API.APIError as e:
             if e.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
                 device_family = API.DeviceFamily.NRF52
@@ -72,10 +72,10 @@ class NRF5x:
                 api = API.API(device_family)
                 api.open()
                 self._connect_to_emu(api)
+                api.connect_to_device()
             else:
                 raise e
-
-        api.connect_to_device()
+                
         return api
 
     def _connect_to_emu(self, api):
