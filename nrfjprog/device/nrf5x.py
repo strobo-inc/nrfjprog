@@ -143,12 +143,7 @@ def memrd(args):
     nrf = NRF5x(args)
     nrf.log("Reading the device's memory.")
 
-    if args.length:
-        length = args.length
-    else:
-        length = 4
-
-    read_data = nrf.api.read(args.addr, length)
+    read_data = nrf.api.read(args.addr, args.length)
     print(np.array(read_data))
 
     nrf.cleanup()
@@ -157,10 +152,7 @@ def memwr(args):
     nrf = NRF5x(args)
     nrf.log("Writing the device's memory.")
 
-    if args.flash:
-        nrf.api.write_u32(args.addr, args.val, True)
-    else:
-        nrf.api.write_u32(args.addr, args.val, False)
+    nrf.api.write_u32(args.addr, args.val, args.flash)
 
     nrf.cleanup()
 
