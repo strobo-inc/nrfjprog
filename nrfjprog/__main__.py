@@ -29,9 +29,9 @@
 import argparse
 import sys
 
-from device import nrf5x
+from model import perform_command
 
-class Nrfjprog():
+class Nrfjprog:
     """
     Class to handle the command-line interface.
 
@@ -78,7 +78,7 @@ class Nrfjprog():
         self.args = self.parser.parse_args()
         self.args.func(self.args)  # Call the default function. (i.e. nRF5x.erase() in the erase command).
 
-class Command():
+class Command:
     """
     Class handling the creation of a command. Adds the common arguments each command shares and specifies the callback that will perform the requested functionality.
 
@@ -106,28 +106,28 @@ The top-level positional commands of our command-line interface. These add share
 
 def _add_erase_command(subparsers):
     erase_parser = subparsers.add_parser('erase', help = "Erases the device's FLASH.")
-    Command(erase_parser, nrf5x.erase)
+    Command(erase_parser, perform_command.erase)
 
     _add_erase_group(erase_parser)
 
 def _add_halt_command(subparsers):
     halt_parser = subparsers.add_parser('halt', help = "Halts the device's CPU.")
-    Command(halt_parser, nrf5x.halt)
+    Command(halt_parser, perform_command.halt)
 
 def _add_ids_command(subparsers): # This is the only command that doesn't have the snr and quiet option.
     ids_parser = subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
-    Command(ids_parser, nrf5x.ids, connects = False)
+    Command(ids_parser, perform_command.ids, connects = False)
 
 def _add_memrd_command(subparsers):
     memrd_parser = subparsers.add_parser('memrd', help = "Reads the device's memory.")
-    Command(memrd_parser, nrf5x.memrd)
+    Command(memrd_parser, perform_command.memrd)
 
     _add_addr_argument(memrd_parser)
     _add_length_argument(memrd_parser)
 
 def _add_memwr_command(subparsers):
     memwr_parser = subparsers.add_parser('memwr', help = "Writes one word in the device's memory.")
-    Command(memwr_parser, nrf5x.memwr)
+    Command(memwr_parser, perform_command.memwr)
 
     _add_addr_argument(memwr_parser)
     _add_flash_argument(memwr_parser)
@@ -135,11 +135,11 @@ def _add_memwr_command(subparsers):
 
 def _add_pinresetenable_command(subparsers):
     pinresetenable_parser = subparsers.add_parser('pinresetenable', help = "Enable the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
-    Command(pinresetenable_parser, nrf5x.pinresetenable)
+    Command(pinresetenable_parser, perform_command.pinresetenable)
 
 def _add_program_command(subparsers):
     program_parser = subparsers.add_parser('program', help = 'Programs the device.')
-    Command(program_parser, nrf5x.program)
+    Command(program_parser, perform_command.program)
 
     _add_file_argument(program_parser)
     _add_erase_before_flash_group(program_parser)
@@ -148,15 +148,15 @@ def _add_program_command(subparsers):
 
 def _add_readback_command(subparsers):
     readback_parser = subparsers.add_parser('rbp', help = 'Enables the readback protection mechanism.')
-    Command(readback_parser, nrf5x.readback)
+    Command(readback_parser, perform_command.readback)
 
 def _add_readregs_command(subparsers):
     readregs_parser = subparsers.add_parser('readregs', help = 'Reads the CPU registers.')
-    Command(readregs_parser, nrf5x.readregs)
+    Command(readregs_parser, perform_command.readregs)
 
 def _add_readtofile_command(subparsers):
     readtofile_parser = subparsers.add_parser('readtofile', help = "Reads and stores the device's memory.")
-    Command(readtofile_parser, nrf5x.readtofile)
+    Command(readtofile_parser, perform_command.readtofile)
 
     _add_file_argument(readtofile_parser)
     _add_readcode_argument(readtofile_parser)
@@ -165,30 +165,30 @@ def _add_readtofile_command(subparsers):
 
 def _add_recover_command(subparsers):
     recover_parser = subparsers.add_parser('recover', help = 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
-    Command(recover_parser, nrf5x.recover)
+    Command(recover_parser, perform_command.recover)
 
 def _add_reset_command(subparsers):
     reset_parser = subparsers.add_parser('reset', help = 'Resets the device.')
-    Command(reset_parser, nrf5x.reset)
+    Command(reset_parser, perform_command.reset)
 
     _add_reset_group(reset_parser)
 
 def _add_run_command(subparsers):
     run_parser = subparsers.add_parser('run', help = "Runs the device's CPU.")
-    Command(run_parser, nrf5x.run)
+    Command(run_parser, perform_command.run)
 
     _add_pc_argument(run_parser)
     _add_sp_argument(run_parser)
 
 def _add_verify_command(subparsers):
     verify_parser = subparsers.add_parser('verify', help = "Verifies that the device's memory contains the correct data.")
-    Command(verify_parser, nrf5x.verify)
+    Command(verify_parser, perform_command.verify)
 
     _add_file_argument(verify_parser)
 
 def _add_version_command(subparsers):
     version_parser = subparsers.add_parser('version', help = 'Display the nrfjprog and JLinkARM DLL versions.')
-    Command(version_parser, nrf5x.version, connects = False)
+    Command(version_parser, perform_command.version, connects = False)
 
 """
 Mutually exclusive groups. argparse will make sure only one of the arguments in a mutually exclusive group was present on the command-line.

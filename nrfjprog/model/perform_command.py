@@ -31,7 +31,9 @@ import nrfjprog_version
 import numpy as np
 from pynrfjprog import API, Hex
 
-class NRF5x:
+# from model.device import NRF5xDevice
+
+class SetupCommand:
     """
     Class that handles the api instance, some arguments that commands share, and logging.
 
@@ -51,6 +53,8 @@ class NRF5x:
             pass
         else:
             self._setup()
+            
+            # nRF5x_device = NRF5xDevice(self.device_version)
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
@@ -87,15 +91,15 @@ class NRF5x:
         else:
             api.connect_to_emu_without_snr()
 
+    def cleanup_api(self):
+        self.api.disconnect_from_emu()
+        self.api.close()
+
     def log(self, msg):
         if self.args.quiet:
             pass
         else:
             print(msg)
-
-    def cleanup_api(self):
-        self.api.disconnect_from_emu()
-        self.api.close()
 
 """
 The callback functions that are called from __main__.py (argparse) based on the command-line input.
@@ -104,7 +108,7 @@ All functions follow the same structure: initialize NRF5x, log (exactly what the
 """
 
 def erase(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log('Erasing the device.')
 
     if args.erasepage:
@@ -117,7 +121,7 @@ def erase(args):
     nrf.cleanup_api()
 
 def halt(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Halting the device's CPU.")
 
     nrf.api.halt()
@@ -125,10 +129,10 @@ def halt(args):
     nrf.cleanup_api()
 
 def ids(args):
-    nrf = NRF5x(args, do_not_initialize_api = True)
+    nrf = SetupCommand(args, do_not_initialize_api = True)
     nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
 
-    api = API.API(API.DeviceFamily.NRF51) # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
+    api = API.API('NRF51') # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
     api.open()
 
     ids = api.enum_emu_snr()
@@ -137,7 +141,7 @@ def ids(args):
     api.close()
 
 def memrd(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Reading the device's memory.")
 
     read_data = nrf.api.read(args.addr, args.length)
@@ -146,7 +150,7 @@ def memrd(args):
     nrf.cleanup_api()
 
 def memwr(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Writing the device's memory.")
 
     nrf.api.write_u32(args.addr, args.val, args.flash)
@@ -154,12 +158,14 @@ def memwr(args):
     nrf.cleanup_api()
 
 def pinresetenable(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+
+    assert(nrf.device_version[:5] != 'NRF51'), "Enabling pin reset is not a valid command for nRF51 devices."
   
     UICR_PSELRESET0_ADDR = 0x10001200
     UICR_PSELRESET1_ADDR = 0x10001204
-    UICR_PSELRESET_21_CONNECT = 0x8FFFFF15 # Writes the connect bit field and 21 pin bit field (reset is connected and GPIO pin 21 is selected as the reset).
+    UICR_PSELRESET_21_CONNECT = 0x8FFFFF15 # Writes the CONNECT PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
 
     nrf.api.write_u32(UICR_PSELRESET0_ADDR, UICR_PSELRESET_21_CONNECT, True)
     nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
@@ -168,7 +174,7 @@ def pinresetenable(args):
     nrf.cleanup_api()
 
 def program(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log('Programming the device.')
 
     if args.eraseall:
@@ -199,15 +205,15 @@ def program(args):
     nrf.cleanup_api()
 
 def readback(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log('Enabling the readback protection mechanism.')
 
-    nrf.api.readback_protect(API.ReadbackProtection.ALL)
+    nrf.api.readback_protect(API.ReadbackProtection.ALL) # TODO: What should this be?
 
     nrf.cleanup_api()
 
 def readregs(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log('Reading the CPU registers.')
 
     for reg in API.CpuRegister:
@@ -216,7 +222,7 @@ def readregs(args):
     nrf.cleanup_api()
 
 def readtofile(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Reading and storing the device's memory.")
 
     assert (False), "Not implemented in nrf5x.py yet."
@@ -224,7 +230,7 @@ def readtofile(args):
     nrf.cleanup_api()
 
 def recover(args):
-    nrf = NRF5x(args, do_not_initialize_api = True)
+    nrf = SetupCommand(args, do_not_initialize_api = True)
     nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
 
     try:
@@ -240,7 +246,7 @@ def recover(args):
         api.close()
 
 def reset(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log('Resetting the device.')
 
     _reset(nrf, args, default_sys_reset = True)
@@ -248,20 +254,20 @@ def reset(args):
     nrf.cleanup_api()
 
 def run(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Running the device's CPU.")
 
     if args.pc != None and args.sp != None:
         nrf.api.run(args.pc, args.sp)
     elif args.pc != None or args.sp != None:
-        assert (False), 'Both the PC and the SP must be specified.'
+        assert(False), 'Both the PC and the SP must be specified.'
     else:
         nrf.api.go()
 
     nrf.cleanup_api()
 
 def verify(args):
-    nrf = NRF5x(args)
+    nrf = SetupCommand(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
     hex_file_path = _get_file_path(args.file.name)
@@ -276,10 +282,10 @@ def verify(args):
     nrf.cleanup_api()
 
 def version(args):
-    nrf = NRF5x(args, do_not_initialize_api = True)
+    nrf = SetupCommand(args, do_not_initialize_api = True)
     nrf.log('Displaying the nrfjprog and JLinkARM DLL versions.')
 
-    api = API.API(API.DeviceFamily.NRF51) # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
+    api = API.API('NRF51')
     api.open()
 
     jlink_arm_dll_version = api.dll_version()
@@ -302,12 +308,17 @@ def _get_file_path(user_specified_path):
         return os.path.join(tmp_path, user_specified_path)
 
 def _reset(nrf, args, default_sys_reset = False):
+    """
+    Reset and run the device.
+
+    """
     if args.debugreset:
         nrf.api.debug_reset()
-        nrf.api.go()
     elif args.pinreset:
         nrf.api.pin_reset()
-        nrf.api.go()
     elif args.systemreset or default_sys_reset:
         nrf.api.sys_reset()
-        nrf.api.go()
+    else:
+        return
+
+    nrf.api.go() # Really we should not need this call, but nrfjprog DLL halts after a reset.
