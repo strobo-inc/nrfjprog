@@ -44,11 +44,13 @@ class NRF5x:
         :param boolean do_not_initialize_api: If api should be intialized (the connection to the target device should be set up).
         """
         self.args = args
+        self.api = None
+        self.device_version = None
 
         if do_not_initialize_api:
             pass
         else:
-            self.api = self._setup()
+            self._setup()
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
@@ -58,35 +60,27 @@ class NRF5x:
 
         :return API api: Instance of an API object that is initialized and connected to an nRF5x device.
         """
-        device_family = API.DeviceFamily.NRF51
-        api = API.API(device_family)
-        api.open()
-        self._connect_to_emu(api)
-        
         try:
-            api.connect_to_device()
-        except API.APIError as e:
-            if e.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
-                device_family = API.DeviceFamily.NRF52
-                api.close()
-                api = API.API(device_family)
-                api.open()
-                self._connect_to_emu(api)
-                api.connect_to_device()
-            else:
-                raise e
-                
-        return api
+            self._try_family('NRF51')
+        except:
+            self.cleanup_api()
+            self._try_family('NRF52')
 
-    def _connect_to_emu(self, api):
+    def _try_family(self, device_family):
+        self.api = API.API(device_family)
+        self.api.open()
+        self._connect_to_emu()
+        self.device_version = self.api.read_device_version() # Will fail if device_family is incorrect.
+        
+    def _connect_to_emu(self):
         if self.args.snr and self.args.clockspeed:
-            api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
+            self.api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
         elif self.args.snr:
-            api.connect_to_emu_with_snr(self.args.snr)
+            self.api.connect_to_emu_with_snr(self.args.snr)
         elif self.args.clockspeed:
-            api.connect_to_emu_without_snr(self.args.clockspeed)
+            self.api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
-            api.connect_to_emu_without_snr()
+            self.api.connect_to_emu_without_snr()
 
     def log(self, msg):
         if self.args.quiet:
@@ -94,7 +88,7 @@ class NRF5x:
         else:
             print(msg)
 
-    def cleanup(self):
+    def cleanup_api(self):
         self.api.disconnect_from_emu()
         self.api.close()
 
@@ -115,7 +109,7 @@ def erase(args):
     else:
         nrf.api.erase_all()
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def halt(args):
     nrf = NRF5x(args)
@@ -123,7 +117,7 @@ def halt(args):
 
     nrf.api.halt()
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def ids(args):
     nrf = NRF5x(args, do_not_initialize_api = True)
@@ -144,7 +138,7 @@ def memrd(args):
     read_data = nrf.api.read(args.addr, args.length)
     print(np.array(read_data))
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def memwr(args):
     nrf = NRF5x(args)
@@ -152,7 +146,7 @@ def memwr(args):
 
     nrf.api.write_u32(args.addr, args.val, args.flash)
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def pinresetenable(args):
     nrf = NRF5x(args)
@@ -166,7 +160,7 @@ def pinresetenable(args):
     nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
     nrf.api.sys_reset()
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def program(args):
     nrf = NRF5x(args)
@@ -197,7 +191,7 @@ def program(args):
 
     _reset(nrf, args)
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def readback(args):
     nrf = NRF5x(args)
@@ -205,7 +199,7 @@ def readback(args):
 
     nrf.api.readback_protect(API.ReadbackProtection.ALL)
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def readregs(args):
     nrf = NRF5x(args)
@@ -214,7 +208,7 @@ def readregs(args):
     for reg in API.CpuRegister:
         print(hex(nrf.api.read_cpu_register(reg)))
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def readtofile(args):
     nrf = NRF5x(args)
@@ -222,7 +216,7 @@ def readtofile(args):
 
     assert (False), "Not implemented in nrf5x.py yet."
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def recover(args):
     nrf = NRF5x(args, do_not_initialize_api = True)
@@ -231,11 +225,11 @@ def recover(args):
     try:
         nrf._setup(args)
         nrf.api.recover()
-        nrf.cleanup()
-    except Exception:
+        nrf.cleanup_api()
+    except:
         api = API.API(API.DeviceFamily.NRF52) # If we fail, it has to be an nRF52 device with access port protection enabled.
         api.open()
-        nrf._connect_to_emu(api)
+        api.connect_to_emu_without_snr() # TODO: snr and clock speed not able to be set this way.
         api.recover()
         api.disconnect_from_emu()
         api.close()
@@ -246,7 +240,7 @@ def reset(args):
 
     _reset(nrf, args, default_sys_reset = True)
     
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def run(args):
     nrf = NRF5x(args)
@@ -259,7 +253,7 @@ def run(args):
     else:
         nrf.api.go()
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def verify(args):
     nrf = NRF5x(args)
@@ -274,7 +268,7 @@ def verify(args):
 
     nrf.log('Verified.')
 
-    nrf.cleanup()
+    nrf.cleanup_api()
 
 def version(args):
     nrf = NRF5x(args, do_not_initialize_api = True)
