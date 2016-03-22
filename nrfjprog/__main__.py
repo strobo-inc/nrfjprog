@@ -177,6 +177,9 @@ def _add_run_command(subparsers):
     run_parser = subparsers.add_parser('run', help = "Runs the device's CPU.")
     Command(run_parser, nrf5x.run)
 
+    _add_pc_argument(run_parser)
+    _add_sp_argument(run_parser)
+
 def _add_verify_command(subparsers):
     verify_parser = subparsers.add_parser('verify', help = "Verifies that the device's memory contains the correct data.")
     Command(verify_parser, nrf5x.verify)
@@ -242,6 +245,9 @@ def _add_flash_argument(subparsers):
 def _add_length_argument(subparsers):
     subparsers.add_argument('-l', '--length', type = auto_int, help = 'The number of bytes to be read. 4 (one word) by default.', default = 4)
 
+def _add_pc_argument(subparsers):
+    subparsers.add_argument('--pc', type = auto_int, metavar = 'PC_ADDR', help = 'Initial program counter to start the CPU running from.')
+
 def _add_pinreset_argument(subparsers):
     subparsers.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
 
@@ -265,6 +271,9 @@ def _add_sectorsuicr_erase(subparsers):
 
 def _add_snr_argument(subparsers):
     subparsers.add_argument('-s', '--snr', type = int, help = 'Selects the debugger with the given serial number among all those connected to the PC for the operation.')
+
+def _add_sp_argument(subparsers):
+    subparsers.add_argument('--sp', type = auto_int, metavar = 'SP_ADDR', help = 'Initial stack pointer.')
 
 def _add_sysreset_argument(subparsers):
     subparsers.add_argument('-r', '--systemreset', action = 'store_true', help = 'Executes a system reset.')

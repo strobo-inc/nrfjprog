@@ -108,7 +108,7 @@ All functions follow the same structure: initialize NRF5x, log (exactly what the
 
 def erase(args):
     nrf = NRF5x(args)
-    nrf.log('Erasing the device.') # This should go to stderr.
+    nrf.log('Erasing the device.')
 
     if args.erasepage:
         nrf.api.erase_page(args.erasepage)
@@ -135,7 +135,7 @@ def ids(args):
     api.open()
 
     ids = api.enum_emu_snr()
-    print(sorted(ids)) # This should go to stdout.
+    print(sorted(ids))
 
     api.close()
 
@@ -147,8 +147,6 @@ def memrd(args):
         length = args.length
     else:
         length = 4
-
-    assert(length > 0), 'Length (number of bytes to read) must be nonnegative.'
 
     read_data = nrf.api.read(args.addr, length)
     print(np.array(read_data))
@@ -162,7 +160,6 @@ def memwr(args):
     if args.flash:
         nrf.api.write_u32(args.addr, args.val, True)
     else:
-        assert(args.addr >= 0x80000), "The --flash option needs to be specified when writing FLASH." # Won't catch UICR writes but better than nothing for now...
         nrf.api.write_u32(args.addr, args.val, False)
 
     nrf.cleanup()
@@ -170,8 +167,14 @@ def memwr(args):
 def pinresetenable(args):
     nrf = NRF5x(args)
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+  
+    UICR_PSELRESET0_ADDR = 0x10001200
+    UICR_PSELRESET1_ADDR = 0x10001204
+    UICR_PSELRESET_21_CONNECT = 0x8FFFFF15 # Writes the connect bit field and 21 pin bit field (reset is connected and GPIO pin 21 is selected as the reset).
 
-    assert (false), 'Not implemented yet.'
+    nrf.api.write_u32(UICR_PSELRESET0_ADDR, UICR_PSELRESET_21_CONNECT, True)
+    nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
+    nrf.api.sys_reset()
 
     nrf.cleanup()
 
@@ -252,7 +255,7 @@ def reset(args):
     nrf = NRF5x(args)
     nrf.log('Resetting the device.')
 
-    _reset(nrf, args, True)
+    _reset(nrf, args, default_sys_reset = True)
     
     nrf.cleanup()
 
@@ -260,7 +263,12 @@ def run(args): # TODO: run should accept pc and sp as input.
     nrf = NRF5x(args)
     nrf.log("Running the device's CPU.")
 
-    nrf.api.go()
+    if args.pc != None and args.sp != None:
+        nrf.api.run(args.pc, args.sp)
+    elif args.pc != None or args.sp != None:
+        assert (False), 'Both the PC and the SP must be specified.'
+    else:
+        nrf.api.go()
 
     nrf.cleanup()
 
