@@ -53,7 +53,8 @@ class NRF5x:
         else:
             self._setup()
 
-        NRF5xDevice(self.device_version)
+        nRFDevice = NRF5xDevice(self.device_version)
+        nRFDevice.error_check(args)
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 

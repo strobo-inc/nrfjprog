@@ -28,6 +28,8 @@
 
 from pynrfjprog import API, Hex
 
+MAX_UNSIGNED_32_BIT = 0xFFFFFFFF
+
 """
 Device specific info.
 
@@ -61,10 +63,53 @@ class NRF5xDevice:
         self.FICR_END = self.FICR_START + self.PAGE_SIZE
         self.UICR_END = self.UICR_START + self.PAGE_SIZE
 
+    def _assert(self, condition):
+        """
+        How do we want to return errors?
+
+        """
+        assert(condition), 'ERROR!'
+
     def error_check(self, args):
         """
-        We need to check all user input to the command-line interface for errors.
+        We need to check all CUSTOM user input to the command-line interface for errors.
 
         :param Object  args:                  The arguments the command was called with.
         """
-        pass
+        self._in_args(args)
+
+        self._assert(self.val >= 0 and self.val <= MAX_UNSIGNED_32_BIT)
+
+    def _in_args(self, args):
+        """
+        Check which arguments exist in the args Namespace store the ones that do as properties (although they may be None).
+
+        """
+        try:
+            self.addr = args.addr
+        except:
+            pass
+        try:
+            self.erasepage = args.erasepage
+        except:
+            pass
+        try:
+            self.file = args.file
+        except:
+            pass
+        try:
+            self.length = args.length
+        except:
+            pass
+        try:
+            self.pc = args.pc
+        except:
+            pass
+        try:
+            self.sp = args.sp
+        except:
+            pass
+        try:
+            self.val = args.val
+        except:
+            pass
