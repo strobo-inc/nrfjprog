@@ -69,18 +69,23 @@ class NRF5x:
     def _try_family(self, device_family):
         self.api = API.API(device_family)
         self.api.open()
-        self._connect_to_emu()
+        self.connect_to_emu(self.api)
         self.device_version = self.api.read_device_version() # Will fail if device_family is incorrect.
         
-    def _connect_to_emu(self):
+    def connect_to_emu(self, api):
+        """
+        Connect to the emulator (debugger) with the specific serial number and/or clock speed if either was specified in the command-line arguments.
+
+        :param API api: Take as an input instead of self.api so this method can be either called from inside or outside NRF5x.
+        """
         if self.args.snr and self.args.clockspeed:
-            self.api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
+            api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
         elif self.args.snr:
-            self.api.connect_to_emu_with_snr(self.args.snr)
+            api.connect_to_emu_with_snr(self.args.snr)
         elif self.args.clockspeed:
-            self.api.connect_to_emu_without_snr(self.args.clockspeed)
+            api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
-            self.api.connect_to_emu_without_snr()
+            api.connect_to_emu_without_snr()
 
     def log(self, msg):
         if self.args.quiet:
@@ -229,7 +234,7 @@ def recover(args):
     except:
         api = API.API(API.DeviceFamily.NRF52) # If we fail, it has to be an nRF52 device with access port protection enabled.
         api.open()
-        api.connect_to_emu_without_snr() # TODO: snr and clock speed not able to be set this way.
+        nrf.connect_to_emu(api)
         api.recover()
         api.disconnect_from_emu()
         api.close()
