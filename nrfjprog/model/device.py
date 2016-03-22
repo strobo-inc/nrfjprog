@@ -26,10 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from pynrfjprog import API, Hex
-
-MAX_UNSIGNED_32_BIT = 0xFFFFFFFF
-
 """
 Device specific info.
 
@@ -71,60 +67,3 @@ class NRF5xDevice:
         self.RAM_SIZE = self.RAM_END - self.RAM_START
 
         self.NUMBER_OF_FLASH_PAGES_IN_CODE = self.FLASH_SIZE / self.PAGE_SIZE
-
-    def error_check(self, args):
-        """
-        We need to check all CUSTOM user input to the command-line interface for errors.
-
-        :param Object  args:                  The arguments the command was called with.
-        """
-        self._in_args(args)
-
-        if self.erasepage != None:
-            page_number = self.erasepage % self.PAGE_SIZE
-            self._assert(page_number == 0 and (self.erasepage / self.PAGE_SIZE) < self.NUMBER_OF_FLASH_PAGES_IN_CODE)
-        if self.length != None:
-            self._assert(self.length > 0)
-        if self.val != None:
-            self._assert(self.val >= 0 and self.val <= MAX_UNSIGNED_32_BIT)
-
-    def _assert(self, condition):
-        """
-        How do we want to return errors?
-
-        """
-        assert(condition), 'ERROR!'
-
-    def _in_args(self, args):
-        """
-        Check which arguments exist in the args Namespace store the ones that do as properties (although they may be None).
-
-        """
-        try:
-            self.addr = args.addr
-        except:
-            self.addr = None
-        try:
-            self.erasepage = args.erasepage
-        except:
-            self.erasepage = None
-        try:
-            self.file = args.file
-        except:
-            self.file = None
-        try:
-            self.length = args.length
-        except:
-            self.length = None
-        try:
-            self.pc = args.pc
-        except:
-            self.pc = None
-        try:
-            self.sp = args.sp
-        except:
-            self.sp = None
-        try:
-            self.val = args.val
-        except:
-            self.val = None
