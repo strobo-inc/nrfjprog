@@ -18,11 +18,11 @@ nrfjprog\
   # LICENSE, README.md, and requirements.txt (used to install this module). setup.py and tests\ to be added here in the future.
   nrfjprog\
     __init__.py # Package marker to make nrfjprog a module.
-    __main__.py # This is where the command line interface is implemented. It parsers arguemnts using argparse and calls nRF5x to perform the requested operation.
-    nrfjprog_version.py # Contains a global variable containing the version of nrfjprog.
+    __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and calls functions in perform_command.py to perform the requested operation.
+    nrfjprog_version.py # A global variable containing the version of nrfjprog.
       model\
         __init__.py # Package marker to make model a module.
-        perform_command.py # This is where the functionality of each command is implemented. Uses the pynrfjprog module.
+        perform_command.py # This is where the functionality of each command is implemented. Relies on the pynrfjprog module.
         device.py # Not used currently. Implements a class to represent the specs of a specific device (i.e. NRF52_FP1).
 ```
 
