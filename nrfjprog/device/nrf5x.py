@@ -220,7 +220,6 @@ def readtofile(args):
     nrf = NRF5x(args)
     nrf.log("Reading and storing the device's memory.")
 
-    #TODO
     assert (False), "Not implemented in nrf5x.py yet."
 
     nrf.cleanup()
@@ -249,7 +248,7 @@ def reset(args):
     
     nrf.cleanup()
 
-def run(args): # TODO: run should accept pc and sp as input.
+def run(args):
     nrf = NRF5x(args)
     nrf.log("Running the device's CPU.")
 
