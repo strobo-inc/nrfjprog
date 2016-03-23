@@ -40,11 +40,13 @@ RAM_SIZE = {'NRF52_FP1'   : 0x10000,
 PAGE_SIZE = {'NRF52_FP1'   : 0x1000,
              'NRF51_XLR3P' : 0x400}
 
-class NRF5xDevice:
+
+class NRF5xDevice(object):
     """
     Class representing an nRF5x device.
 
     """
+    
     FLASH_START = 0x0
     RAM_START = 0x20000000
     FICR_START = 0x10000000

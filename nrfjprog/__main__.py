@@ -31,11 +31,13 @@ import sys
 
 from model import perform_command
 
-class Nrfjprog:
+
+class Nrfjprog(object):
     """
     Class to handle the command-line interface.
 
     """
+    
     NRFJPROG_DESCRIPTION = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
     NRFJPROG_EPILOG = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nrfjprog COMMAND -h (i.e. python nrfjprog erase -h)."
 
@@ -78,7 +80,8 @@ class Nrfjprog:
         self.args = self.parser.parse_args()
         self.args.func(self.args)  # Call the default function. (i.e. nRF5x.erase() in the erase command).
 
-class Command:
+
+class Command(object):
     """
     Class handling the creation of a command. Adds the common arguments each command shares and specifies the callback that will perform the requested functionality.
 
@@ -86,6 +89,7 @@ class Command:
     @param func           callback: Function that performs operation for given command.
     @param boolean        connects: If this command connects to the emulator (debugger) and should have the option to set the clock speed/serial number.
     """
+    
     def __init__(self, parser, callback, connects = True):
         """
         All commands except the 'ids' and 'version' command share these arguments.
@@ -98,6 +102,7 @@ class Command:
             _add_snr_argument(parser)
 
         parser.set_defaults(func = callback)
+
 
 """
 The top-level positional commands of our command-line interface. These add shared arguments with Command() and then add unique arguments.
@@ -189,6 +194,7 @@ def _add_verify_command(subparsers):
 def _add_version_command(subparsers):
     version_parser = subparsers.add_parser('version', help = 'Display the nrfjprog and JLinkARM DLL versions.')
     Command(version_parser, perform_command.version, connects = False)
+
 
 """
 Mutually exclusive groups. argparse will make sure only one of the arguments in a mutually exclusive group was present on the command-line.
@@ -284,6 +290,7 @@ def _add_val_argument(subparsers):
 def _add_verify_argument(subparsers):
     subparsers.add_argument('-v', '--verify', action = 'store_true', help = 'Read back memory and verify that it matches FILE.')
 
+
 """
 Helpers.
 
@@ -297,6 +304,7 @@ def auto_int(x):
     return int(x, 0)
 
 
+
 def main(argv):
     """
     Set up a command line interface using the argparse module.
@@ -306,6 +314,7 @@ def main(argv):
     """
     cli = Nrfjprog()
     cli.run()
+
 
 if __name__ == '__main__':
     main(sys.argv)

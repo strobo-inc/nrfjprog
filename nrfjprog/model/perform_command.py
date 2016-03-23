@@ -31,19 +31,19 @@ import nrfjprog_version
 import numpy as np
 from pynrfjprog import API, Hex
 
-# from model.device import NRF5xDevice
 
-class SetupCommand:
+class SetupCommand(object):
     """
     Class that handles the api instance, some arguments that commands share, and logging.
 
     """
+    
     def __init__(self, args, do_not_initialize_api = False):
         """
-        Initialize api (the connection to the target device) and the class's properties.
+        Initialize the class's properties.
 
         :param Object  args:                  The arguments the command was called with.
-        :param boolean do_not_initialize_api: If api should be intialized (the connection to the target device should be set up).
+        :param boolean do_not_initialize_api: If api should be initialized (the connection to the target device should be set up).
         """
         self.args = args
         self.api = None
@@ -52,54 +52,62 @@ class SetupCommand:
         if do_not_initialize_api:
             pass
         else:
-            self._setup()
-            
-            # nRF5x_device = NRF5xDevice(self.device_version)
+            if self._if_correct_family_setup_api('NRF51'):
+                pass
+            elif self._if_correct_family_setup_api('NRF52'):
+                pass
+            else:
+                assert(False), 'Unknown device family.'
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
-    def _setup(self):
+    def _if_correct_family_setup_api(self, device_family):
         """
-        Discovers the family (either NRF51 or NRF52) of the target device (through trial and error) and connects to it.
+        Connect to target device and check if device_family is correct. If correct, initialize api and return True. Else, cleanup and return False.
 
-        :return API api: Instance of an API object that is initialized and connected to an nRF5x device.
+        :param  String:  The device family type to try.
+        :return Boolean: Whether we succeeded in setting up api (the connection with our target device).
         """
-        try:
-            self._try_family('NRF51')
-        except:
-            self.cleanup_api()
-            self._try_family('NRF52')
-
-    def _try_family(self, device_family):
         self.api = API.API(device_family)
         self.api.open()
-        self.connect_to_emu(self.api)
-        self.device_version = self.api.read_device_version() # Will fail if device_family is incorrect.
+        self._connect_to_emu()
         
-    def connect_to_emu(self, api):
+        try:
+            self.device_version = self.api.read_device_version()
+        except API.APIError as error:
+            if error.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
+                self.cleanup_api()
+                return False
+            else:
+                assert(False), 'Error!'
+
+        return True
+        
+    def _connect_to_emu(self):
         """
         Connect to the emulator (debugger) with the specific serial number and/or clock speed if either was specified in the command-line arguments.
 
-        :param API api: Take as an input instead of self.api so this method can be either called from inside or outside NRF5x.
         """
         if self.args.snr and self.args.clockspeed:
-            api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
+            self.api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
         elif self.args.snr:
-            api.connect_to_emu_with_snr(self.args.snr)
+            self.api.connect_to_emu_with_snr(self.args.snr)
         elif self.args.clockspeed:
-            api.connect_to_emu_without_snr(self.args.clockspeed)
+            self.api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
-            api.connect_to_emu_without_snr()
+            self.api.connect_to_emu_without_snr()
 
     def cleanup_api(self):
         self.api.disconnect_from_emu()
         self.api.close()
+        self.api = None
 
     def log(self, msg):
         if self.args.quiet:
             pass
         else:
             print(msg)
+
 
 """
 The callback functions that are called from __main__.py (argparse) based on the command-line input.
@@ -230,20 +238,7 @@ def readtofile(args):
     nrf.cleanup_api()
 
 def recover(args):
-    nrf = SetupCommand(args, do_not_initialize_api = True)
-    nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
-
-    try:
-        nrf._setup(args)
-        nrf.api.recover()
-        nrf.cleanup_api()
-    except:
-        api = API.API(API.DeviceFamily.NRF52) # If we fail, it has to be an nRF52 device with access port protection enabled.
-        api.open()
-        nrf.connect_to_emu(api)
-        api.recover()
-        api.disconnect_from_emu()
-        api.close()
+    assert(False), 'Not implemented yet.'
 
 def reset(args):
     nrf = SetupCommand(args)
@@ -293,6 +288,7 @@ def version(args):
     print(nrfjprog_version.NRFJPROG_VERSION)
 
     api.close()
+
 
 """
 Helper functions.
