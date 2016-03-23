@@ -52,23 +52,23 @@ class SetupCommand(object):
         if do_not_initialize_api:
             pass
         else:
-            if self._if_correct_family_setup_api('NRF51'):
+            if self._setup('NRF51'):
                 pass
-            elif self._if_correct_family_setup_api('NRF52'):
+            elif self._setup('NRF52'):
                 pass
             else:
                 assert(False), 'Unknown device family.'
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
-    def _if_correct_family_setup_api(self, device_family):
+    def _setup(self, device_family_guess):
         """
-        Connect to target device and check if device_family is correct. If correct, initialize api and return True. Else, cleanup and return False.
+        Connect to target device and check if device_family_guess is correct. If correct, initialize api and device_version and return True. Else, cleanup and return False.
 
         :param  String:  The device family type to try.
-        :return Boolean: Whether we succeeded in setting up api (the connection with our target device).
+        :return Boolean: If we were successful or not.
         """
-        self.api = API.API(device_family)
+        self.api = API.API(device_family_guess)
         self.api.open()
         self._connect_to_emu()
         
@@ -76,7 +76,7 @@ class SetupCommand(object):
             self.device_version = self.api.read_device_version()
         except API.APIError as error:
             if error.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
-                self.cleanup_api()
+                self.cleanup()
                 return False
             else:
                 assert(False), 'Error!'
@@ -97,10 +97,11 @@ class SetupCommand(object):
         else:
             self.api.connect_to_emu_without_snr()
 
-    def cleanup_api(self):
+    def cleanup(self):
         self.api.disconnect_from_emu()
         self.api.close()
         self.api = None
+        self.device_version = None
 
     def log(self, msg):
         if self.args.quiet:
@@ -126,7 +127,7 @@ def erase(args):
     else:
         nrf.api.erase_all()
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def halt(args):
     nrf = SetupCommand(args)
@@ -134,7 +135,7 @@ def halt(args):
 
     nrf.api.halt()
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def ids(args):
     nrf = SetupCommand(args, do_not_initialize_api = True)
@@ -155,7 +156,7 @@ def memrd(args):
     read_data = nrf.api.read(args.addr, args.length)
     print(np.array(read_data))
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def memwr(args):
     nrf = SetupCommand(args)
@@ -163,7 +164,7 @@ def memwr(args):
 
     nrf.api.write_u32(args.addr, args.val, args.flash)
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def pinresetenable(args):
     nrf = SetupCommand(args)
@@ -179,7 +180,7 @@ def pinresetenable(args):
     nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
     nrf.api.sys_reset()
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def program(args):
     nrf = SetupCommand(args)
@@ -210,7 +211,7 @@ def program(args):
 
     _reset(nrf, args)
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def readback(args):
     nrf = SetupCommand(args)
@@ -218,7 +219,7 @@ def readback(args):
 
     nrf.api.readback_protect(API.ReadbackProtection.ALL) # TODO: What should this be?
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def readregs(args):
     nrf = SetupCommand(args)
@@ -227,7 +228,7 @@ def readregs(args):
     for reg in API.CpuRegister:
         print(hex(nrf.api.read_cpu_register(reg)))
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def readtofile(args):
     nrf = SetupCommand(args)
@@ -235,7 +236,7 @@ def readtofile(args):
 
     assert (False), "Not implemented in nrf5x.py yet."
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def recover(args):
     assert(False), 'Not implemented yet.'
@@ -246,7 +247,7 @@ def reset(args):
 
     _reset(nrf, args, default_sys_reset = True)
     
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def run(args):
     nrf = SetupCommand(args)
@@ -259,7 +260,7 @@ def run(args):
     else:
         nrf.api.go()
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def verify(args):
     nrf = SetupCommand(args)
@@ -274,7 +275,7 @@ def verify(args):
 
     nrf.log('Verified.')
 
-    nrf.cleanup_api()
+    nrf.cleanup()
 
 def version(args):
     nrf = SetupCommand(args, do_not_initialize_api = True)
