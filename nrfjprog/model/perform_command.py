@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-from nrfjprog import nrfjprog_version
+import nrfjprog_version
 import numpy as np
 from pynrfjprog import API, Hex
 
