@@ -34,7 +34,7 @@ from pynrfjprog import API, Hex
 
 class SetupCommand(object):
     """
-    Class that handles the api instance, some arguments that commands share, and logging.
+    Class that handles the pynrfjprog api instance, some shared arguments, and logging.
 
     """
     
@@ -71,12 +71,13 @@ class SetupCommand(object):
         self.api = None
         self.device_version = None
 
-    def connect_to_emu(self, args, api):
+    def connect_to_emu(self, api):
         """
-        Will only be called if do_not_initialze
+        This method should only be called when this class is created with the do_not_initialize_api flag (i.e. called by recover()).
 
+        :param API api: An instance of api that has been initialized by caller.
         """
-        self.args = args
+        assert (self.api == None), "The class's api property has already been initialized."
         self.api = api
         self._connect_to_emu()
 
@@ -158,7 +159,7 @@ def ids(args):
     nrf = SetupCommand(args, do_not_initialize_api = True)
     nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
 
-    api = API.API('NRF51') # Family doesn't matter since we are not connecting to a device so use NRF51 by default.
+    api = API.API('NRF51') # Device family type arbitrary since we are not connecting to a device. Use NRF51 by default.
     api.open()
 
     ids = api.enum_emu_snr()
@@ -199,7 +200,7 @@ def pinresetenable(args): # TODO: User should be able to select which pin to con
 
     nrf.cleanup()
 
-def program(args):
+def program(args): # TODO: more implementation/cleanup to be done here.
     nrf = SetupCommand(args)
     nrf.log('Programming the device.')
 
@@ -243,7 +244,7 @@ def readregs(args):
     nrf.log('Reading the CPU registers.')
 
     for reg in API.CpuRegister:
-        print(hex(nrf.api.read_cpu_register(reg)))
+        print('{}: {}'.format(reg.name, hex(nrf.api.read_cpu_register(reg))))
 
     nrf.cleanup()
 
@@ -251,7 +252,7 @@ def readtofile(args):
     nrf = SetupCommand(args)
     nrf.log("Reading and storing the device's memory.")
 
-    assert (False), "Not implemented in nrf5x.py yet."
+    assert (False), "Not implemented in nrf5x.py yet." # TODO: Implement this.
 
     nrf.cleanup()
 
@@ -261,11 +262,11 @@ def recover(args):
 
     api = API.API(args.family)
     api.open()
-    nrf.connect_to_emu(args, api)
-    api.recover()
+    
+    nrf.connect_to_emu(api)
+    nrf.api.recover()
 
-    api.disconnect_from_emu()
-    api.close()
+    nrf.cleanup()
 
 def reset(args):
     nrf = SetupCommand(args)
@@ -311,8 +312,8 @@ def version(args):
     api.open()
 
     jlink_arm_dll_version = api.dll_version()
-    print(jlink_arm_dll_version)
-    print(nrfjprog_version.NRFJPROG_VERSION)
+    print('JLink version: {}'.format(jlink_arm_dll_version))
+    print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
 
     api.close()
 
