@@ -5,11 +5,11 @@
 The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. Using a tool such as PyInstaller or py2exe this module can be converted to a stand-alone (cross-platform) executable. This will give the user the option to run nrfjprog without worrying about their python environment or to use this module in their custom scripts (i.e. automated testing) as a higher-level alternative/supplement to pynrfjprog.
 
 # Running the exe
-1.) Download the zipped 'dist' folder and extract it.
-2.) Either add the path containing 'nrfjprog.exe' to your environment variables or navigate to that directory in ~/dist/.
-3.) $ nrfjprog -h (nrfjprog.exe -h if path not added to your environment variables).
-4.) $ nrfjprog program -h
-5.) $ nrfjprog program -f PATH_TO_APP.hex -e -v -r
+1. Download the zipped 'dist' folder and extract it.
+2. Either add the path containing 'nrfjprog.exe' to your environment variables or navigate to that directory in ~/dist/.
+3. $ nrfjprog -h (nrfjprog.exe -h if path not added to your environment variables).
+4. $ nrfjprog program -h
+5. $ nrfjprog program -f PATH_TO_APP.hex -e -v -r
 
 # Running in Python
 1. $ sudo pip install -r requirements.txt
