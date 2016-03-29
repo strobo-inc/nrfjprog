@@ -34,7 +34,7 @@ from model import perform_command
 
 class Nrfjprog(object):
     """
-    Class to handle the command-line interface.
+    Class that handles the command-line interface.
 
     """
     

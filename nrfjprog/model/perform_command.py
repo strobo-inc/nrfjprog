@@ -43,7 +43,7 @@ class SetupCommand(object):
         Initialize the class's properties.
 
         :param Object  args:                  The arguments the command was called with.
-        :param boolean do_not_initialize_api: If api should be initialized (the connection to the target device should be set up).
+        :param Boolean do_not_initialize_api: If api should be initialized (the connection to the target device should be set up).
         """
         self.args = args
         self.api = None
@@ -61,12 +61,32 @@ class SetupCommand(object):
 
         np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
 
+    def cleanup(self):
+        """
+        Disconnect from the emulator (debugger) and close api. Then set properties no longer valid to None.
+
+        """
+        self.api.disconnect_from_emu()
+        self.api.close()
+        self.api = None
+        self.device_version = None
+
+    def log(self, msg):
+        """
+        Controls how info should be displayed to the user.
+
+        """
+        if self.args.quiet:
+            pass
+        else:
+            print(msg)
+
     def _setup(self, device_family_guess):
         """
         Connect to target device and check if device_family_guess is correct. If correct, initialize api and device_version and return True. Else, cleanup and return False.
 
         :param  String:  The device family type to try.
-        :return Boolean: If we were successful or not.
+        :return Boolean: If device_family_guess was correct and we initialized everything successfully.
         """
         self.api = API.API(device_family_guess)
         self.api.open()
@@ -96,18 +116,6 @@ class SetupCommand(object):
             self.api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
             self.api.connect_to_emu_without_snr()
-
-    def cleanup(self):
-        self.api.disconnect_from_emu()
-        self.api.close()
-        self.api = None
-        self.device_version = None
-
-    def log(self, msg):
-        if self.args.quiet:
-            pass
-        else:
-            print(msg)
 
 
 """
@@ -166,7 +174,7 @@ def memwr(args):
 
     nrf.cleanup()
 
-def pinresetenable(args):
+def pinresetenable(args): # TODO: User should be able to select which pin to configure as reset.
     nrf = SetupCommand(args)
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
 
@@ -174,7 +182,7 @@ def pinresetenable(args):
   
     UICR_PSELRESET0_ADDR = 0x10001200
     UICR_PSELRESET1_ADDR = 0x10001204
-    UICR_PSELRESET_21_CONNECT = 0x8FFFFF15 # Writes the CONNECT PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
+    UICR_PSELRESET_21_CONNECT = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
 
     nrf.api.write_u32(UICR_PSELRESET0_ADDR, UICR_PSELRESET_21_CONNECT, True)
     nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
@@ -239,7 +247,12 @@ def readtofile(args):
     nrf.cleanup()
 
 def recover(args):
-    assert(False), 'Not implemented yet.'
+    nrf = SetupCommand(args)
+    nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
+
+    assert (False), "Not implemented in nrf5x.py yet."
+
+    nrf.cleanup()
 
 def reset(args):
     nrf = SetupCommand(args)
