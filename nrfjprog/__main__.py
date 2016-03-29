@@ -119,7 +119,7 @@ class Nrfjprog(object):
         halt_parser = self.subparsers.add_parser('halt', help = "Halts the device's CPU.")
         self.Command(self, halt_parser, perform_command.halt)
 
-    def _add_ids_command(self): # This is the only command that doesn't have the snr and quiet option.
+    def _add_ids_command(self):
         ids_parser = self.subparsers.add_parser('ids', help = 'Displays the serial numbers of all debuggers connected to the PC.')
         self.Command(self, ids_parser, perform_command.ids, connects = False)
 

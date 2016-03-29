@@ -40,18 +40,16 @@ class SetupCommand(object):
     
     def __init__(self, args, do_not_initialize_api = False):
         """
-        Initialize the class's properties.
+        Initialize the class's properties, sets up the connection to our target device and configures some printing options.
 
         :param Object  args:                  The arguments the command was called with.
-        :param Boolean do_not_initialize_api: If api should be initialized (the connection to the target device should be set up).
+        :param Boolean do_not_initialize_api: If api should be initialized (the connection to the target device should be set up - a command may not need to connect to the target device).
         """
         self.args = args
         self.api = None
         self.device_version = None
 
-        if do_not_initialize_api:
-            pass
-        else:
+        if do_not_initialize_api == False:
             if self._setup('NRF51'):
                 pass
             elif self._setup('NRF52'):
@@ -63,7 +61,7 @@ class SetupCommand(object):
 
     def cleanup(self):
         """
-        Disconnect from the emulator (debugger) and close api. Then set properties no longer valid to None.
+        Disconnect from the emulator (debugger) and close the pynrfjprog api instance.
 
         """
         self.api.disconnect_from_emu()
@@ -75,7 +73,7 @@ class SetupCommand(object):
         """
         This method should only be called when this class is created with the do_not_initialize_api flag (i.e. called by recover()).
 
-        :param API api: An instance of api that has been initialized by caller.
+        :param API api: An instance of api that has been initialized by the caller.
         """
         assert (self.api == None), "The class's api property has already been initialized."
         self.api = api
@@ -323,7 +321,11 @@ Helper functions.
 
 """
 
-def _get_file_path(user_specified_path):
+def _get_file_path(user_specified_path): # BUG: won't work properly when nrfjprog is in PATH variables.
+    """
+    The user can either specify a relative path from their current directory or an absolute path.
+
+    """
     if os.path.exists(user_specified_path): # If user specified an absolute path.
         return user_specified_path
     else: # Otherwise append the path user specified to nrfjprog/.
@@ -342,7 +344,6 @@ def _reset(nrf, args, default_sys_reset = False):
         nrf.api.pin_reset()
     elif args.systemreset or default_sys_reset:
         nrf.api.sys_reset()
-    else:
-        return
 
-    nrf.api.go() # Really we should not need this call, but nrfjprog DLL halts after a reset.
+    if default_sys_reset:   
+        nrf.api.go() # Really we should not need this call, but nrfjprog DLL halts after a reset.
