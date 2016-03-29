@@ -38,12 +38,16 @@ JLinkARMDLL # A DLL provided by SEGGER that works with SEGGER debuggers. Perform
 ```
 
 # Bundling as an executable
+```python
+"""
 PyInstaller bundles a Python application and all its dependencies into a single package and is tested against Windows, Mac OS X, and Linux. http://pythonhosted.org/PyInstaller/
 We will use PyInstaller to create an executable to distribute to the end user from our nrfjprog Python application. It will be fully multi platform.
-1. $ pip install pyinstaller
-2. Navigate to ~/nrfjprog and run $ pyinstaller __main__.py --name nrfjprog
-3. Move SEGGER and Nordic DLL's required by nrfjprog into ~/nrfjprog/dist/nrfjprog/
-4. Navigate to ~/nrfjprog/dist/nrfjprog and run $ nrfjprog.exe --help
+"""
+pip install pyinstaller # This should be OK for windows. For OS X and Linux double check with PyInstaller manual. You may need to install some dependencies.
+Navigate to ~/nrfjprog and run > pyinstaller __main__.py --name nrfjprog # --name allows us to name the exe as nrfjprog instead of the default __main__.
+Move SEGGER and Nordic DLL's required by nrfjprog into ~/nrfjprog/dist/nrfjprog/ # Right now I use the DLL's from the nrfjprog exe Nordic currently releases.
+Navigate to ~/nrfjprog/dist/nrfjprog and run > nrfjprog.exe --help
+```
 
 # Future
 We want nrfjprog to be flexible and open. We want it to be an option for our users all the way from development and testing to production programming. In the future we will open source pynrfjprog as well. This implementation will also
