@@ -172,6 +172,8 @@ class Nrfjprog(object):
         recover_parser = self.subparsers.add_parser('recover', help = 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
         self.Command(self, recover_parser, perform_command.recover)
 
+        self._add_family_argument(recover_parser)
+
     def _add_reset_command(self):
         reset_parser = self.subparsers.add_parser('reset', help = 'Resets the device.')
         self.Command(self, reset_parser, perform_command.reset)
@@ -242,6 +244,9 @@ class Nrfjprog(object):
 
     def _add_eraseuicr_argument(self, parser):
         parser.add_argument('--eraseuicr', action = 'store_true', help = 'Erase the UICR page in FLASH.')
+
+    def _add_family_argument(self, parser):
+        parser.add_argument('--family', type = str, help = 'The family of the target device.', required = True, choices = ['NRF51', 'NRF52'])
 
     def _add_file_argument(self, parser):
         parser.add_argument('-f', '--file', type = file, help = 'The hex file to be used in this operation.', required = True)

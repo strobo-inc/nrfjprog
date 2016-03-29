@@ -71,6 +71,15 @@ class SetupCommand(object):
         self.api = None
         self.device_version = None
 
+    def connect_to_emu(self, args, api):
+        """
+        Will only be called if do_not_initialze
+
+        """
+        self.args = args
+        self.api = api
+        self._connect_to_emu()
+
     def log(self, msg):
         """
         Controls how info should be displayed to the user.
@@ -247,12 +256,16 @@ def readtofile(args):
     nrf.cleanup()
 
 def recover(args):
-    nrf = SetupCommand(args)
+    nrf = SetupCommand(args, do_not_initialize_api = True)
     nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
 
-    assert (False), "Not implemented in nrf5x.py yet."
+    api = API.API(args.family)
+    api.open()
+    nrf.connect_to_emu(args, api)
+    api.recover()
 
-    nrf.cleanup()
+    api.disconnect_from_emu()
+    api.close()
 
 def reset(args):
     nrf = SetupCommand(args)
