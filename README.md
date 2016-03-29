@@ -2,9 +2,16 @@
 [![PyPI](https://img.shields.io/pypi/l/Django.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # nrfjprog
-The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. The goal is to use a tool such as PyInstaller or py2exe to convert this module to an executable. This will give the user the option to run nrfjprog without worrying about their python environment or to use this module in their custom scripts (i.e. automated testing) as a higher-level alternative/supplement to pynrfjprog.
+The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. Using a tool such as PyInstaller or py2exe this module can be converted to a stand-alone (cross-platform) executable. This will give the user the option to run nrfjprog without worrying about their python environment or to use this module in their custom scripts (i.e. automated testing) as a higher-level alternative/supplement to pynrfjprog.
 
-# Running
+# Running the exe
+1.) Download the zipped 'dist' folder and extract it.
+2.) Either add the path containing 'nrfjprog.exe' to your environment variables or navigate to that directory in ~/dist/.
+3.) $ nrfjprog -h (nrfjprog.exe -h if path not added to your environment variables).
+4.) $ nrfjprog program -h
+5.) $ nrfjprog program -f PATH_TO_APP.hex -e -v -r
+
+# Running in Python
 1. $ sudo pip install -r requirements.txt
 2. Clone or download this repository.
 3. Navigate to the repository's root directory (~/nrfjprog/).
@@ -15,7 +22,7 @@ The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to 
 # Structure
 ```python
 nrfjprog\
-  # LICENSE, README.md, and requirements.txt (used to install this module). setup.py and tests\ to be added here in the future.
+  # LICENSE, README.md, setup.py and requirements.txt (used to install this module). tests\ to be added here in the future.
   nrfjprog\
     __init__.py # Package marker to make nrfjprog a module.
     __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and calls functions in perform_command.py to perform the requested operation.
@@ -41,7 +48,9 @@ JLinkARMDLL # A DLL provided by SEGGER that works with SEGGER debuggers. Perform
 ```python
 """
 PyInstaller bundles a Python application and all its dependencies into a single package and is tested against Windows, Mac OS X, and Linux. http://pythonhosted.org/PyInstaller/.
-We will use PyInstaller to create an executable to distribute to the end user from our nrfjprog Python application. It will be fully multi platform.
+
+We will use PyInstaller to create an executable to distribute to the end user from our nrfjprog Python application. It will be multi platform.
+
 Currently we bundle into a single package but we can also bundle into a single executable (one file) using PyInstaller.
 """
 ```
