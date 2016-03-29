@@ -37,6 +37,14 @@ nrfjprogdll # A DLL that does some error checking and calls SEGGER's JLink API. 
 JLinkARMDLL # A DLL provided by SEGGER that works with SEGGER debuggers. Performs all low level operations with target device.
 ```
 
+# Bundling as an executable
+PyInstaller bundles a Python application and all its dependencies into a single package and is tested against Windows, Mac OS X, and Linux. http://pythonhosted.org/PyInstaller/
+We will use PyInstaller to create an executable to distribute to the end user from our nrfjprog Python application. It will be fully multi platform.
+1. $ pip install pyinstaller
+2. Navigate to ~/nrfjprog and run $ pyinstaller __main__.py --name nrfjprog
+3. Move SEGGER and Nordic DLL's required by nrfjprog into ~/nrfjprog/dist/nrfjprog/
+4. Navigate to ~/nrfjprog/dist/nrfjprog and run $ nrfjprog.exe --help
+
 # Future
 We want nrfjprog to be flexible and open. We want it to be an option for our users all the way from development and testing to production programming. In the future we will open source pynrfjprog as well. This implementation will also
 allow for SEGGER to be used interchangeably with CMSIS-DAP/DAP-Link for example.
