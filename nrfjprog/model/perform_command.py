@@ -181,7 +181,11 @@ def memwr(args):
     nrf = SetupCommand(args)
     nrf.log("Writing the device's memory.")
 
-    nrf.api.write_u32(args.addr, args.val, args.flash) # TODO: args.flash can be automatically determined or we can introduce error checking.
+    flash = False
+    if (args.addr in range(nrf.device.FLASH_START, nrf.device.FLASH_END) or args.addr in range(nrf.device.UICR_START, nrf.device.UICR_END)):
+        flash = True
+
+    nrf.api.write_u32(args.addr, args.val, flash)
 
     nrf.cleanup()
 
