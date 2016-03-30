@@ -138,7 +138,7 @@ class Nrfjprog(object):
         self._add_val_argument(memwr_parser)
 
     def _add_pinresetenable_command(self):
-        pinresetenable_parser = self.subparsers.add_parser('pinresetenable', help = "Enable the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
+        pinresetenable_parser = self.subparsers.add_parser('pinresetenable', help = "Enable the pin reset (GPIO 21) on nRF52 devices. Invalid command on nRF51 devices.")
         self.Command(self, pinresetenable_parser, perform_command.pinresetenable)
 
     def _add_program_command(self):
@@ -153,6 +153,8 @@ class Nrfjprog(object):
     def _add_readback_command(self):
         readback_parser = self.subparsers.add_parser('rbp', help = 'Enables the readback protection mechanism.')
         self.Command(self, readback_parser, perform_command.readback)
+
+        self._add_rbplevel_argument(readback_parser)
 
     def _add_readregs_command(self):
         readregs_parser = self.subparsers.add_parser('readregs', help = 'Reads the CPU registers.')
@@ -260,7 +262,10 @@ class Nrfjprog(object):
         parser.add_argument('-p', '--pinreset', action = 'store_true', help = 'Executes a pin reset.')
 
     def _add_quiet_argument(self, parser):
-        parser.add_argument('-q', '--quiet', action =  'store_true', help = 'Nothing will be printed to terminal during the operation.' )
+        parser.add_argument('-q', '--quiet', action = 'store_true', help = 'Nothing will be printed to terminal during the operation.')
+
+    def _add_rbplevel_argument(self, parser):
+        parser.add_argument('--rbplevel', help = 'Specify the read back protection level (NRF51 only).', choices = ['CR0', 'ALL'])
 
     def _add_readcode_argument(self, parser):
         parser.add_argument('--readcode', action = 'store_true', help = 'If this argument is specified read code FLASH and store in FILE.')

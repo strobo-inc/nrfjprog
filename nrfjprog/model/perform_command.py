@@ -189,7 +189,7 @@ def memwr(args):
 
     nrf.cleanup()
 
-def pinresetenable(args): # TODO: User should be able to select which pin to configure as reset.
+def pinresetenable(args):
     nrf = SetupCommand(args)
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
 
@@ -240,7 +240,10 @@ def readback(args):
     nrf = SetupCommand(args)
     nrf.log('Enabling the readback protection mechanism.')
 
-    nrf.api.readback_protect(API.ReadbackProtection.ALL) # TODO: What should this be?
+    if args.rbplevel == 'CR0':
+        nrf.api.readback_protect(API.ReadbackProtection.REGION_0)
+    else:
+        nrf.api.readback_protect(API.ReadbackProtection.ALL)
 
     nrf.cleanup()
 
@@ -261,7 +264,7 @@ def readtofile(args):
         with open(args.file, 'w') as file:
             if args.readcode or not (args.readuicr or args.readram):
                 file.write('----------Code FLASH----------\n\n')
-                _output_data(nrf.device.FLASH_START,  np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), file)
+                _output_data(nrf.device.FLASH_START, np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), file)
                 file.write('\n\n')
             if args.readuicr:
                 file.write('----------UICR----------\n\n')
@@ -358,11 +361,11 @@ def _output_data(addr, byte_array, file = None):
     index = 0
     
     while index < len(byte_array):
-        tmp = "{}: {}".format(hex(addr), byte_array[index : index + 4])
+        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
         if file:
-            file.write(tmp + '\n')
+            file.write(string + '\n')
         else:
-            print(tmp) 
+            print(string) 
         addr = addr + 4
         index = index + 4
 
