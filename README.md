@@ -60,7 +60,7 @@ Currently we bundle into a single package but we can also bundle into a single e
 4. Navigate to ~/nrfjprog/dist/nrfjprog and run $ nrfjprog.exe --help
 
 # Coding Standard
-https://google.github.io/styleguide/pyguide.html
+https://google.github.io/styleguide/pyguide.html  
 http://www.clifford.at/style.html
 
 # Future
