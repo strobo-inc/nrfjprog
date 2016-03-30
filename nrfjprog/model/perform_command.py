@@ -172,8 +172,13 @@ def memrd(args):
     nrf = SetupCommand(args)
     nrf.log("Reading the device's memory.")
 
-    read_data = nrf.api.read(args.addr, args.length)
-    print(np.array(read_data))
+    addr = args.addr
+    length = args.length
+
+    read_data = nrf.api.read(addr, length)
+    data = np.array(read_data)
+
+    _output_data(addr, data)
 
     nrf.cleanup()
 
@@ -255,29 +260,26 @@ def readtofile(args):
 
     device_memory = [None, None, None]
 
-    if args.readcode:
+    if args.readcode or not (args.readuicr or args.readram):
         device_memory[0] = np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE))
     if args.readuicr:
         device_memory[1] = np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE))
     if args.readram:
         device_memory[2] = np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE))
-    
-    if not (args.readcode or args.readuicr or args.readram):
-        device_memory[0] = np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE))
 
     try:
         with open(args.file, 'w') as file:
             if device_memory[0] is not None:
                 file.write('----------Code FLASH----------\n\n')
-                file.write(str(device_memory[0]))
+                _output_data(nrf.device.FLASH_START, device_memory[0], file)
                 file.write('\n\n')
             if device_memory[1] is not None:
                 file.write('----------UICR----------\n\n')
-                file.write(str(device_memory[1]))
+                _output_data(nrf.device.UICR_START, device_memory[1], file)
                 file.write('\n\n')
             if device_memory[2] is not None:
                 file.write('----------RAM----------\n\n')
-                file.write(str(device_memory[2]))
+                _output_data(nrf.device.RAM_START, device_memory[2], file)
     except IOError as error:
         nrf.log("Error when opening/writing file.") # Does not exist OR no r/w permissions.
 
@@ -361,6 +363,24 @@ def _get_file_path(user_specified_path): # BUG: won't work properly when nrfjpro
         tmp_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
         tmp_path = os.path.abspath(os.path.join(tmp_path, os.pardir))
         return os.path.join(tmp_path, user_specified_path)
+
+def _output_data(addr, byte_array, file = None):
+    """
+
+
+
+    """
+    index = 0
+    
+    while index < len(byte_array):
+        tmp = "{}: {}".format(hex(addr), byte_array[index : index + 4])
+        if file:
+            file.write(tmp + '\n')
+        else:
+            print(tmp)
+        
+        addr = addr + 4
+        index = index + 4
 
 def _reset(nrf, args, default_sys_reset = False):
     """
