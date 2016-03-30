@@ -135,7 +135,6 @@ class Nrfjprog(object):
         self.Command(self, memwr_parser, perform_command.memwr)
 
         self._add_addr_argument(memwr_parser)
-        self._add_flash_argument(memwr_parser)
         self._add_val_argument(memwr_parser)
 
     def _add_pinresetenable_command(self):
@@ -250,9 +249,6 @@ class Nrfjprog(object):
 
     def _add_file_argument(self, parser):
         parser.add_argument('-f', '--file', help = 'The hex file to be used in this operation.', required = True)
-
-    def _add_flash_argument(self, parser):
-        parser.add_argument('--flash', action = 'store_true', help = 'If this argument is specified write to FLASH using the NVMC. Else write to RAM.')
 
     def _add_length_argument(self, parser):
         parser.add_argument('-l', '--length', type = self._auto_int, help = 'The number of bytes to be read. 4 (one word) by default.', default = 4)

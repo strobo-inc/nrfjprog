@@ -271,7 +271,7 @@ def readtofile(args):
                 file.write('----------RAM----------\n\n')
                 _output_data(nrf.device.RAM_START, np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE)), file)
     except IOError as error:
-        nrf.log("Error when opening/writing file.") # Does not exist OR no r/w permissions.
+        nrf.log("Error when opening/writing file.")
 
     nrf.cleanup()
 
@@ -342,17 +342,13 @@ Helper functions.
 
 """
 
-def _get_file_path(user_specified_path): # BUG: won't work properly when nrfjprog is in PATH variables.
+def _get_file_path(user_specified_path):
     """
     The user can either specify a relative path from their current directory or an absolute path.
 
     """
-    if os.path.exists(user_specified_path): # If user specified an absolute path.
+    if os.path.exists(user_specified_path):
         return user_specified_path
-    else: # Otherwise append the path user specified to nrfjprog/.
-        tmp_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-        tmp_path = os.path.abspath(os.path.join(tmp_path, os.pardir))
-        return os.path.join(tmp_path, user_specified_path)
 
 def _output_data(addr, byte_array, file = None):
     """
@@ -384,4 +380,4 @@ def _reset(nrf, args, default_sys_reset = False):
     else:
         return
 
-    nrf.api.go() # Really we should not need this call, but nrfjprog DLL halts after a reset.
+    nrf.api.go()
