@@ -249,7 +249,7 @@ class Nrfjprog(object):
         parser.add_argument('--family', type = str, help = 'The family of the target device.', required = True, choices = ['NRF51', 'NRF52'])
 
     def _add_file_argument(self, parser):
-        parser.add_argument('-f', '--file', type = file, help = 'The hex file to be used in this operation.', required = True)
+        parser.add_argument('-f', '--file', help = 'The hex file to be used in this operation.', required = True)
 
     def _add_flash_argument(self, parser):
         parser.add_argument('--flash', action = 'store_true', help = 'If this argument is specified write to FLASH using the NVMC. Else write to RAM.')

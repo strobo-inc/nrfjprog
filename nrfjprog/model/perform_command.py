@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import device
 import nrfjprog_version
 import numpy as np
 from pynrfjprog import API, Hex
@@ -47,6 +48,7 @@ class SetupCommand(object):
         """
         self.args = args
         self.api = None
+        self.device = None
         self.device_version = None
 
         if do_not_initialize_api == False:
@@ -89,6 +91,20 @@ class SetupCommand(object):
         else:
             print(msg)
 
+    def _connect_to_emu(self):
+        """
+        Connect to the emulator (debugger) with the specific serial number and/or clock speed if either was specified in the command-line arguments.
+
+        """
+        if self.args.snr and self.args.clockspeed:
+            self.api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
+        elif self.args.snr:
+            self.api.connect_to_emu_with_snr(self.args.snr)
+        elif self.args.clockspeed:
+            self.api.connect_to_emu_without_snr(self.args.clockspeed)
+        else:
+            self.api.connect_to_emu_without_snr()
+
     def _setup(self, device_family_guess):
         """
         Connect to target device and check if device_family_guess is correct. If correct, initialize api and device_version and return True. Else, cleanup and return False.
@@ -109,21 +125,8 @@ class SetupCommand(object):
             else:
                 assert(False), 'Error!'
 
-        return True
-        
-    def _connect_to_emu(self):
-        """
-        Connect to the emulator (debugger) with the specific serial number and/or clock speed if either was specified in the command-line arguments.
-
-        """
-        if self.args.snr and self.args.clockspeed:
-            self.api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
-        elif self.args.snr:
-            self.api.connect_to_emu_with_snr(self.args.snr)
-        elif self.args.clockspeed:
-            self.api.connect_to_emu_without_snr(self.args.clockspeed)
-        else:
-            self.api.connect_to_emu_without_snr()
+        self.device = device.NRF5xDevice(self.device_version)
+        return True     
 
 
 """
@@ -209,7 +212,7 @@ def program(args): # TODO: more implementation/cleanup to be done here.
     elif args.sectorsanduicrerase:
         assert (False), "Not implemented in nrf5x.py yet."
 
-    hex_file_path = _get_file_path(args.file.name)
+    hex_file_path = _get_file_path(args.file)
     
     nrf.log('Parsing hex file into segments.')
     test_program = Hex.Hex(hex_file_path)
@@ -250,7 +253,25 @@ def readtofile(args):
     nrf = SetupCommand(args)
     nrf.log("Reading and storing the device's memory.")
 
-    assert (False), "Not implemented in nrf5x.py yet." # TODO: Implement this.
+    device_memory = ()
+
+    if args.readcode:
+        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), )
+    if args.readuicr:
+        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE)), )
+    if args.readram:
+        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE)), )
+    
+    if not (args.readcode or args.readuicr or args.readram):
+        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), )
+
+    try:
+        with open(args.file, 'w') as file:
+            for data in device_memory:
+                file.write(data)
+                file.write('\n\n\n--------------------\n\n\n')
+    except IOError as error:
+        nrf.log("Error when opening/writing file.") # Does not exist OR no r/w permissions.
 
     nrf.cleanup()
 
@@ -291,7 +312,7 @@ def verify(args):
     nrf = SetupCommand(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
-    hex_file_path = _get_file_path(args.file.name)
+    hex_file_path = _get_file_path(args.file)
 
     hex_file = Hex.Hex(hex_file_path)
     for segment in hex_file:
@@ -344,6 +365,7 @@ def _reset(nrf, args, default_sys_reset = False):
         nrf.api.pin_reset()
     elif args.systemreset or default_sys_reset:
         nrf.api.sys_reset()
+    else:
+        return
 
-    if default_sys_reset:   
-        nrf.api.go() # Really we should not need this call, but nrfjprog DLL halts after a reset.
+    nrf.api.go() # Really we should not need this call, but nrfjprog DLL halts after a reset.
