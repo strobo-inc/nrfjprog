@@ -208,9 +208,9 @@ def program(args): # TODO: more implementation/cleanup to be done here.
     if args.eraseall:
         nrf.api.erase_all()
     elif args.sectorserase:
-        assert (False), "Not implemented in nrf5x.py yet."
+        assert (False), "Not implemented in nrf5x.py yet. Use --eraseall for now."
     elif args.sectorsanduicrerase:
-        assert (False), "Not implemented in nrf5x.py yet."
+        assert (False), "Not implemented in nrf5x.py yet. Use --eraseall for now."
 
     hex_file_path = _get_file_path(args.file)
     
