@@ -59,7 +59,7 @@ class SetupCommand(object):
             else:
                 assert(False), 'Unknown device family.'
 
-        np.set_printoptions(formatter={'int':hex}) # Output values displayed as hex instead of dec.
+        np.set_printoptions(formatter={'int':hex}, threshold=np.nan) # Output values displayed as hex instead of dec and print the entire array (not a truncated array).
 
     def cleanup(self):
         """
@@ -253,23 +253,31 @@ def readtofile(args):
     nrf = SetupCommand(args)
     nrf.log("Reading and storing the device's memory.")
 
-    device_memory = ()
+    device_memory = [None, None, None]
 
     if args.readcode:
-        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), )
+        device_memory[0] = np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE))
     if args.readuicr:
-        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE)), )
+        device_memory[1] = np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE))
     if args.readram:
-        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE)), )
+        device_memory[2] = np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE))
     
     if not (args.readcode or args.readuicr or args.readram):
-        device_memory = device_memory + (np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), )
+        device_memory[0] = np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE))
 
     try:
         with open(args.file, 'w') as file:
-            for data in device_memory:
-                file.write(data)
-                file.write('\n\n\n--------------------\n\n\n')
+            if device_memory[0] is not None:
+                file.write('----------Code FLASH----------\n\n')
+                file.write(str(device_memory[0]))
+                file.write('\n\n')
+            if device_memory[1] is not None:
+                file.write('----------UICR----------\n\n')
+                file.write(str(device_memory[1]))
+                file.write('\n\n')
+            if device_memory[2] is not None:
+                file.write('----------RAM----------\n\n')
+                file.write(str(device_memory[2]))
     except IOError as error:
         nrf.log("Error when opening/writing file.") # Does not exist OR no r/w permissions.
 
