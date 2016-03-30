@@ -172,13 +172,8 @@ def memrd(args):
     nrf = SetupCommand(args)
     nrf.log("Reading the device's memory.")
 
-    addr = args.addr
-    length = args.length
-
-    read_data = nrf.api.read(addr, length)
-    data = np.array(read_data)
-
-    _output_data(addr, data)
+    data = np.array(nrf.api.read(args.addr, args.length))
+    _output_data(args.addr, data)
 
     nrf.cleanup()
 
@@ -258,28 +253,19 @@ def readtofile(args):
     nrf = SetupCommand(args)
     nrf.log("Reading and storing the device's memory.")
 
-    device_memory = [None, None, None]
-
-    if args.readcode or not (args.readuicr or args.readram):
-        device_memory[0] = np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE))
-    if args.readuicr:
-        device_memory[1] = np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE))
-    if args.readram:
-        device_memory[2] = np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE))
-
     try:
         with open(args.file, 'w') as file:
-            if device_memory[0] is not None:
+            if args.readcode or not (args.readuicr or args.readram):
                 file.write('----------Code FLASH----------\n\n')
-                _output_data(nrf.device.FLASH_START, device_memory[0], file)
+                _output_data(nrf.device.FLASH_START,  np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), file)
                 file.write('\n\n')
-            if device_memory[1] is not None:
+            if args.readuicr:
                 file.write('----------UICR----------\n\n')
-                _output_data(nrf.device.UICR_START, device_memory[1], file)
+                _output_data(nrf.device.UICR_START, np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE)), file)
                 file.write('\n\n')
-            if device_memory[2] is not None:
+            if args.readram:
                 file.write('----------RAM----------\n\n')
-                _output_data(nrf.device.RAM_START, device_memory[2], file)
+                _output_data(nrf.device.RAM_START, np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE)), file)
     except IOError as error:
         nrf.log("Error when opening/writing file.") # Does not exist OR no r/w permissions.
 
@@ -366,8 +352,7 @@ def _get_file_path(user_specified_path): # BUG: won't work properly when nrfjpro
 
 def _output_data(addr, byte_array, file = None):
     """
-
-
+    When we read data from memory and output it to the console or file, we want to print with following format: ADDRESS: WORD\n
 
     """
     index = 0
@@ -377,8 +362,7 @@ def _output_data(addr, byte_array, file = None):
         if file:
             file.write(tmp + '\n')
         else:
-            print(tmp)
-        
+            print(tmp) 
         addr = addr + 4
         index = index + 4
 
