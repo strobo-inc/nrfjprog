@@ -30,7 +30,7 @@ nrfjprog\
       model\
         __init__.py # Package marker to make model a module.
         perform_command.py # This is where the functionality of each command is implemented. Relies on the pynrfjprog module.
-        device.py # Not used currently. Implements a class to represent the specs of a specific device (i.e. NRF52_FP1).
+        device.py # Implements a class to represent the specs of a specific device (i.e. NRF52_FP1).
 ```
 
 # Architecture
@@ -59,6 +59,9 @@ Currently we bundle into a single package but we can also bundle into a single e
 3. Move SEGGER and Nordic DLL's required by nrfjprog into ~/nrfjprog/dist/nrfjprog/ # Right now I use the DLL's from the nrfjprog exe Nordic currently releases.
 4. Navigate to ~/nrfjprog/dist/nrfjprog and run $ nrfjprog.exe --help
 
+# Coding Standard
+https://google.github.io/styleguide/pyguide.html
+http://www.clifford.at/style.html
 
 # Future
 We want nrfjprog to be flexible and open. We want it to be an option for our users all the way from development and testing to production programming. In the future we will open source pynrfjprog as well. This implementation will also
