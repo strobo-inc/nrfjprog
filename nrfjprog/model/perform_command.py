@@ -26,11 +26,16 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
-import device
-import nrfjprog_version
+"""
+This module can be seen as the model of nrfjprog in the MVC design pattern.
+
+"""
+
 import numpy as np
 from pynrfjprog import API, Hex
+
+import device
+import nrfjprog_version
 
 
 class SetupCommand(object):
@@ -69,6 +74,7 @@ class SetupCommand(object):
         self.api.disconnect_from_emu()
         self.api.close()
         self.api = None
+        self.device = None
         self.device_version = None
 
     def connect_to_emu(self, api):
