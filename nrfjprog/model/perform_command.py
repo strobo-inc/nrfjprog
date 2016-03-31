@@ -205,25 +205,25 @@ def pinresetenable(args):
 
     nrf.cleanup()
 
-def program(args): # TODO: more implementation/cleanup to be done here.
+def program(args):
     nrf = SetupCommand(args)
     nrf.log('Programming the device.')
 
     if args.eraseall:
         nrf.api.erase_all()
-    elif args.sectorserase:
-        assert (False), "Not implemented in nrf5x.py yet. Use --eraseall for now."
-    elif args.sectorsanduicrerase:
-        assert (False), "Not implemented in nrf5x.py yet. Use --eraseall for now."
+    if args.sectorsanduicrerase:
+        nrf.api.erase_uicr()
 
     hex_file_path = _get_file_path(args.file)
-    
-    nrf.log('Parsing hex file into segments.')
     test_program = Hex.Hex(hex_file_path)
-    nrf.log('Writing %s to device.' % hex_file_path)
+
     for segment in test_program:
-        read_data = nrf.api.read(segment.address, len(segment.data))
-        assert (read_data == ([0xFF] * len(read_data))), 'FLASH being written to must be erased.'
+        if args.sectorserase or args.sectorsanduicrerase:
+            start_page = int(segment.address / nrf.device.PAGE_SIZE)
+            end_page = int((segment.address + len(segment.data)) / nrf.device.PAGE_SIZE)
+            for page in range(start_page, end_page + 1):
+                nrf.api.erase_page(page * nrf.device.PAGE_SIZE)
+
         nrf.api.write(segment.address, segment.data, True)
         if args.verify:
             read_data = nrf.api.read(segment.address, len(segment.data))
