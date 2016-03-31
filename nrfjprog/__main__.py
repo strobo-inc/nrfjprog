@@ -40,6 +40,9 @@ class Nrfjprog(object):
     """
     Class that handles the command-line interface.
 
+    This class may also be used to build an internal version of nrfjprog.exe (either by Nordic or a user).
+    When using this class all the positional commands will be present, hence the protected naming of _add_commands.
+    Methods to add groups of arguments and arguments are public so the user can reuse these if they require the same argument with one of their custom commands.
     """
 
     nrfjprog_description = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
