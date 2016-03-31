@@ -51,7 +51,7 @@ class SetupCommand(object):
         self.device = None
         self.device_version = None
 
-        if do_not_initialize_api == False:
+        if not do_not_initialize_api:
             if self._setup('NRF51'):
                 pass
             elif self._setup('NRF52'):
@@ -77,7 +77,7 @@ class SetupCommand(object):
 
         :param API api: An instance of api that has been initialized by the caller.
         """
-        assert (self.api == None), "The class's api property has already been initialized."
+        assert (self.api is None), "The class's api property has already been initialized."
         self.api = api
         self._connect_to_emu()
 
@@ -115,7 +115,7 @@ class SetupCommand(object):
         self.api = API.API(device_family_guess)
         self.api.open()
         self._connect_to_emu()
-        
+
         try:
             self.device_version = self.api.read_device_version()
         except API.APIError as error:
@@ -126,7 +126,7 @@ class SetupCommand(object):
                 assert(False), 'Error!'
 
         self.device = device.NRF5xDevice(self.device_version)
-        return True     
+        return True
 
 
 """
@@ -195,12 +195,12 @@ def pinresetenable(args):
 
     assert(nrf.device_version[:5] != 'NRF51'), "Enabling pin reset is not a valid command for nRF51 devices."
   
-    UICR_PSELRESET0_ADDR = 0x10001200
-    UICR_PSELRESET1_ADDR = 0x10001204
-    UICR_PSELRESET_21_CONNECT = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
+    uicr_pselreset0_addr = 0x10001200
+    uicr_pselreset1_addr = 0x10001204
+    uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
 
-    nrf.api.write_u32(UICR_PSELRESET0_ADDR, UICR_PSELRESET_21_CONNECT, True)
-    nrf.api.write_u32(UICR_PSELRESET1_ADDR, UICR_PSELRESET_21_CONNECT, True)
+    nrf.api.write_u32(uicr_pselreset0_addr, uicr_pselreset_21_connect, True)
+    nrf.api.write_u32(uicr_pselreset1_addr, uicr_pselreset_21_connect, True)
     nrf.api.sys_reset()
 
     nrf.cleanup()
@@ -213,7 +213,7 @@ def program(args):
         nrf.api.erase_all()
     if args.sectorsanduicrerase:
         nrf.api.erase_uicr()
-    
+
     test_program = Hex.Hex(args.file)
 
     for segment in test_program:
@@ -224,7 +224,7 @@ def program(args):
                 nrf.api.erase_page(page * nrf.device.PAGE_SIZE)
 
         nrf.api.write(segment.address, segment.data, True)
-        
+
         if args.verify:
             read_data = nrf.api.read(segment.address, len(segment.data))
             assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
@@ -284,7 +284,7 @@ def recover(args):
 
     api = API.API(args.family)
     api.open()
-    
+
     nrf.connect_to_emu(api)
     nrf.api.recover()
 
@@ -295,7 +295,7 @@ def reset(args):
     nrf.log('Resetting the device.')
 
     _reset(nrf, args, default_sys_reset=True)
-    
+
     nrf.cleanup()
 
 def run(args):
@@ -349,13 +349,13 @@ def _output_data(addr, byte_array, file=None):
 
     """
     index = 0
-    
+
     while index < len(byte_array):
         string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
         if file:
             file.write(string + '\n')
         else:
-            print(string) 
+            print(string)
         addr = addr + 4
         index = index + 4
 
