@@ -315,9 +315,7 @@ def verify(args):
     nrf = SetupCommand(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
-    hex_file_path = _get_file_path(args.file)
-
-    hex_file = Hex.Hex(hex_file_path)
+    hex_file = Hex.Hex(args.file)
     for segment in hex_file:
         read_data = nrf.api.read(segment.address, len(segment.data))
         assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
@@ -344,14 +342,6 @@ def version(args):
 Helper functions.
 
 """
-
-def _get_file_path(user_specified_path):
-    """
-    The user can either specify a relative path from their current directory or an absolute path.
-
-    """
-    if os.path.exists(user_specified_path):
-        return user_specified_path
 
 def _output_data(addr, byte_array, file = None):
     """
