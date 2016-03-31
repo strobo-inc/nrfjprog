@@ -105,7 +105,7 @@ class Nrfjprog(object):
 
 
     """
-    The top-level positional commands of our command-line interface. These add shared arguments with Command() and then add unique arguments.
+    The top-level positional commands of our command-line interface.
 
     """
 
@@ -228,96 +228,73 @@ class Nrfjprog(object):
 
     """
 
-    @classmethod
-    def _add_addr_argument(cls, parser):
-        parser.add_argument('-a', '--addr', type=cls.auto_int, help='The address in memory to be read/written.', required=True)
+    def _add_addr_argument(self, parser):
+        parser.add_argument('-a', '--addr', type=self.auto_int, help='The address in memory to be read/written.', required=True)
 
-    @classmethod
-    def _add_clockspeed_argument(cls, parser):
+    def _add_clockspeed_argument(self, parser):
         parser.add_argument('-c', '--clockspeed', type=int, metavar='CLOCKSPEEDKHZ', help='Sets the debugger SWD clock speed in kHz for the operation.')
 
-    @classmethod
-    def _add_debugreset_argument(cls, parser):
+    def _add_debugreset_argument(self, parser):
         parser.add_argument('-d', '--debugreset', action='store_true', help='Executes a debug reset.')
 
-    @classmethod
-    def _add_eraseall_argument(cls, parser):
+    def _add_eraseall_argument(self, parser):
         parser.add_argument('-e', '--eraseall', action='store_true', help='Erase all user FLASH including UICR.')
 
-    @classmethod
-    def _add_erasepage_argument(cls, parser):
-        parser.add_argument('--erasepage', type=cls.auto_int, metavar='PAGESTARTADDR', help='Erase the page starting at the address PAGESTARTADDR.')
+    def _add_erasepage_argument(self, parser):
+        parser.add_argument('--erasepage', type=self.auto_int, metavar='PAGESTARTADDR', help='Erase the page starting at the address PAGESTARTADDR.')
 
-    @classmethod
-    def _add_eraseuicr_argument(cls, parser):
+    def _add_eraseuicr_argument(self, parser):
         parser.add_argument('--eraseuicr', action='store_true', help='Erase the UICR page in FLASH.')
 
-    @classmethod
-    def _add_family_argument(cls, parser):
+    def _add_family_argument(self, parser):
         parser.add_argument('--family', type=str, help='The family of the target device.', required=True, choices=['NRF51', 'NRF52'])
 
-    @classmethod
-    def _add_file_argument(cls, parser):
+    def _add_file_argument(self, parser):
         parser.add_argument('-f', '--file', help='The hex file to be used in this operation.', required=True)
 
-    @classmethod
-    def _add_length_argument(cls, parser):
-        parser.add_argument('-l', '--length', type=cls.auto_int, help='The number of bytes to be read. 4 (one word) by default.', default=4)
+    def _add_length_argument(self, parser):
+        parser.add_argument('-l', '--length', type=self.auto_int, help='The number of bytes to be read. 4 (one word) by default.', default=4)
 
-    @classmethod
-    def _add_pc_argument(cls, parser):
-        parser.add_argument('--pc', type=cls.auto_int, metavar='PC_ADDR', help='Initial program counter to start the CPU running from.')
+    def _add_pc_argument(self, parser):
+        parser.add_argument('--pc', type=self.auto_int, metavar='PC_ADDR', help='Initial program counter to start the CPU running from.')
 
-    @classmethod
-    def _add_pinreset_argument(cls, parser):
+    def _add_pinreset_argument(self, parser):
         parser.add_argument('-p', '--pinreset', action='store_true', help='Executes a pin reset.')
 
-    @classmethod
-    def _add_quiet_argument(cls, parser):
+    def _add_quiet_argument(self, parser):
         parser.add_argument('-q', '--quiet', action='store_true', help='Nothing will be printed to terminal during the operation.')
 
-    @classmethod
-    def _add_rbplevel_argument(cls, parser):
+    def _add_rbplevel_argument(self, parser):
         parser.add_argument('--rbplevel', help='Specify the read back protection level (NRF51 only).', choices=['CR0', 'ALL'])
 
-    @classmethod
-    def _add_readcode_argument(cls, parser):
+    def _add_readcode_argument(self, parser):
         parser.add_argument('--readcode', action='store_true', help='If this argument is specified read code FLASH and store in FILE.')
 
-    @classmethod
-    def _add_readram_argument(cls, parser):
+    def _add_readram_argument(self, parser):
         parser.add_argument('--readram', action='store_true', help='If this argument is specified read RAM and store in FILE.')
 
-    @classmethod
-    def _add_readuicr_argument(cls, parser):
+    def _add_readuicr_argument(self, parser):
         parser.add_argument('--readuicr', action='store_true', help='If this argument is specified read UICR FLASH and store in FILE.')
 
-    @classmethod
-    def _add_sectors_erase_argument(cls, parser):
+    def _add_sectors_erase_argument(self, parser):
         parser.add_argument('-se', '--sectorserase', action='store_true', help='Erase all sectors that FILE contains data in before programming.')
 
-    @classmethod
-    def _add_sectorsuicr_erase_argument(cls, parser):
+    def _add_sectorsuicr_erase_argument(self, parser):
         parser.add_argument('-u', '--sectorsanduicrerase', action='store_true', help='Erase all sectors that FILE contains data in and the UICR (unconditionally) before programming.')
 
-    @classmethod
-    def _add_snr_argument(cls, parser):
+    def _add_snr_argument(self, parser):
         parser.add_argument('-s', '--snr', type=int, help='Selects the debugger with the given serial number among all those connected to the PC for the operation.')
 
-    @classmethod
-    def _add_sp_argument(cls, parser):
-        parser.add_argument('--sp', type=cls.auto_int, metavar='SP_ADDR', help='Initial stack pointer.')
+    def _add_sp_argument(self, parser):
+        parser.add_argument('--sp', type=self.auto_int, metavar='SP_ADDR', help='Initial stack pointer.')
 
-    @classmethod
-    def _add_sysreset_argument(cls, parser):
+    def _add_sysreset_argument(self, parser):
         parser.add_argument('-r', '--systemreset', action='store_true', help='Executes a system reset.')
 
-    @classmethod
-    def _add_val_argument(cls, parser):
-        parser.add_argument('--val', type=cls.auto_int, help='The 32 bit word to be written to memory.', required=True)
+    def _add_val_argument(self, parser):
+        parser.add_argument('--val', type=self.auto_int, help='The 32 bit word to be written to memory.', required=True)
 
-    @classmethod
-    def _add_verify_argument(cls, parser):
+    def _add_verify_argument(self, parser):
         parser.add_argument('-v', '--verify', action='store_true', help='Read back memory and verify that it matches FILE.')
 
 
