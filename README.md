@@ -5,7 +5,7 @@
 The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. Using a tool such as PyInstaller or py2exe this module can be converted to a stand-alone (cross-platform) executable. This will give the user the option to run nrfjprog without worrying about their python environment or to use this module in their custom scripts (i.e. automated testing) as a higher-level alternative/supplement to pynrfjprog.
 
 # Running the exe
-1. Download the zipped 'dist' folder and extract it.
+1. Download the zipped 'dist' folder for your operating system and extract it.
 2. Either add the path containing 'nrfjprog.exe' to your environment variables or navigate to that directory in ~/dist/.
 3. $ nrfjprog -h (nrfjprog.exe -h if path not added to your environment variables).
 4. $ nrfjprog program -h
@@ -48,16 +48,15 @@ JLinkARMDLL # A DLL provided by SEGGER that works with SEGGER debuggers. Perform
 ```python
 """
 PyInstaller bundles a Python application and all its dependencies into a single package and is tested against Windows, Mac OS X, and Linux. http://pythonhosted.org/PyInstaller/.
-
 We will use PyInstaller to create an executable to distribute to the end user from our nrfjprog Python application. It will be multi platform.
-
 Currently we bundle into a single package but we can also bundle into a single executable (one file) using PyInstaller.
 """
 ```
-1. $ pip install pyinstaller # This should be OK for windows. For OS X and Linux double check with PyInstaller manual. You may need to install some dependencies.
-2. Navigate to ~/nrfjprog and run $ pyinstaller __main__.py --name nrfjprog # --name allows us to name the exe as nrfjprog instead of the default __main__.
-3. Move SEGGER and Nordic DLL's required by nrfjprog into ~/nrfjprog/dist/nrfjprog/ # Right now I use the DLL's from the nrfjprog exe Nordic currently releases.
+1. $ sudo pip install pyinstaller
+2. Navigate to ~/nrfjprog and run $ pyinstaller __main__.py --clean --name nrfjprog
+3. Move the DLL's required by the official nrfjprog.exe into ~/nrfjprog/dist/nrfjprog/
 4. Navigate to ~/nrfjprog/dist/nrfjprog and run $ nrfjprog.exe --help
+5. Add ~/nrfjprog/dist/nrfjprog to your path and call $ nrfjprog -h from any directory.
 
 # Coding Standard
 https://google.github.io/styleguide/pyguide.html  
