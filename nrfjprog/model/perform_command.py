@@ -213,9 +213,8 @@ def program(args):
         nrf.api.erase_all()
     if args.sectorsanduicrerase:
         nrf.api.erase_uicr()
-
-    hex_file_path = _get_file_path(args.file)
-    test_program = Hex.Hex(hex_file_path)
+    
+    test_program = Hex.Hex(args.file)
 
     for segment in test_program:
         if args.sectorserase or args.sectorsanduicrerase:
@@ -225,6 +224,7 @@ def program(args):
                 nrf.api.erase_page(page * nrf.device.PAGE_SIZE)
 
         nrf.api.write(segment.address, segment.data, True)
+        
         if args.verify:
             read_data = nrf.api.read(segment.address, len(segment.data))
             assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
