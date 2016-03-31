@@ -39,7 +39,7 @@ class SetupCommand(object):
 
     """
     
-    def __init__(self, args, do_not_initialize_api = False):
+    def __init__(self, args, do_not_initialize_api=False):
         """
         Initialize the class's properties, sets up the connection to our target device and configures some printing options.
 
@@ -157,7 +157,7 @@ def halt(args):
     nrf.cleanup()
 
 def ids(args):
-    nrf = SetupCommand(args, do_not_initialize_api = True)
+    nrf = SetupCommand(args, do_not_initialize_api=True)
     nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
 
     api = API.API('NRF51') # Device family type arbitrary since we are not connecting to a device. Use NRF51 by default.
@@ -279,7 +279,7 @@ def readtofile(args):
     nrf.cleanup()
 
 def recover(args):
-    nrf = SetupCommand(args, do_not_initialize_api = True)
+    nrf = SetupCommand(args, do_not_initialize_api=True)
     nrf.log("Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
 
     api = API.API(args.family)
@@ -294,7 +294,7 @@ def reset(args):
     nrf = SetupCommand(args)
     nrf.log('Resetting the device.')
 
-    _reset(nrf, args, default_sys_reset = True)
+    _reset(nrf, args, default_sys_reset=True)
     
     nrf.cleanup()
 
@@ -325,7 +325,7 @@ def verify(args):
     nrf.cleanup()
 
 def version(args):
-    nrf = SetupCommand(args, do_not_initialize_api = True)
+    nrf = SetupCommand(args, do_not_initialize_api=True)
     nrf.log('Displaying the nrfjprog and JLinkARM DLL versions.')
 
     api = API.API('NRF51')
@@ -343,7 +343,7 @@ Helper functions.
 
 """
 
-def _output_data(addr, byte_array, file = None):
+def _output_data(addr, byte_array, file=None):
     """
     When we read data from memory and output it to the console or file, we want to print with following format: ADDRESS: WORD\n
 
@@ -359,7 +359,7 @@ def _output_data(addr, byte_array, file = None):
         addr = addr + 4
         index = index + 4
 
-def _reset(nrf, args, default_sys_reset = False):
+def _reset(nrf, args, default_sys_reset=False):
     """
     Reset and run the device.
 
