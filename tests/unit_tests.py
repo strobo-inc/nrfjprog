@@ -69,37 +69,68 @@ def setup_api():
     api.connect_to_emu_without_snr()
     return api
 
+def cleanup_api(api):
+    api.disconnect_from_emu()
+    api.close()
+    api = None
+
+
 class TestHelpScreens(unittest.TestCase):
     """
 
 
     """
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+        
+    @classmethod
+    def tearDownClass(cls):
+        pass
+    
+    def setUp(self):
+        pass
+        
+    def tearDown(self):
+        pass
+
     def test_help(self):
         self.assertTrue(run_exe(["-h"]) == 0)
 
-    def test_command_help(self):
-        self.assertTrue(run_exe(["program", "-h"]) == 0)
 
 class TestEraseCommand(unittest.TestCase):
     """
 
 
     """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.api = setup_api()
+        
+    @classmethod
+    def tearDownClass(cls):
+        cleanup_api(cls.api)
+    
+    def setUp(self):
+        self.api.recover()
+        
+    def tearDown(self):
+        pass
+
     def test_erase_help(self):
         self.assertTrue(run_exe(["erase", "-h"]) == 0)
 
     def test_erase(self):
-        api = setup_api()
-        
-        api.write_u32(0x0, 0x0, True)
-
+        self.api.write_u32(0x0, 0x0, True)
         run_exe(["erase"])
+        self.assertTrue(self.api.read_u32(0x0) == 0xFFFFFFFF)
 
-        self.assertTrue(api.read_u32(0x0) == 0xFFFFFFFF)
 
 if __name__ == '__main__':
     """
-
+    Run the tests with specified options.
 
     """
     suite = unittest.TestLoader().loadTestsFromTestCase(TestEraseCommand)
