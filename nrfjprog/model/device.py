@@ -31,7 +31,7 @@ Device specific info.
 
 """
 
-FLASH_SIZE = {'NRF52_FP1'      : 0x80000, # TODO: Fix these numbers.
+FLASH_SIZE = {'NRF52_FP1'      : 0x80000,
               'NRF52_FP1_ENGB' : 0x80000,
               'NRF52_FP1_ENGA' : 0x80000,
               'NRF51_XLR3LC'   : 0x40000,
