@@ -41,25 +41,25 @@ FLASH_SIZE = {'NRF52_FP1'      : 0x80000,
               'NRF51_XLR2'     : 0x40000,
               'NRF51_XLR1'     : 0x40000}
 
-RAM_SIZE = {  'NRF52_FP1'      : 0x10000,
-              'NRF52_FP1_ENGB' : 0x8000,
-              'NRF52_FP1_ENGA' : 0x4000,
-              'NRF51_XLR3LC'   : 0x4000,
-              'NRF51_XLR3P'    : 0x8000,
-              'NRF51_L3'       : 0x4000,
-              'NRF51_XLR3'     : 0x4000,
-              'NRF51_XLR2'     : 0x4000,
-              'NRF51_XLR1'     : 0x4000}
+RAM_SIZE = {'NRF52_FP1'      : 0x10000,
+            'NRF52_FP1_ENGB' : 0x8000,
+            'NRF52_FP1_ENGA' : 0x4000,
+            'NRF51_XLR3LC'   : 0x4000,
+            'NRF51_XLR3P'    : 0x8000,
+            'NRF51_L3'       : 0x4000,
+            'NRF51_XLR3'     : 0x4000,
+            'NRF51_XLR2'     : 0x4000,
+            'NRF51_XLR1'     : 0x4000}
 
-PAGE_SIZE = { 'NRF52_FP1'      : 0x1000,
-              'NRF52_FP1_ENGB' : 0x1000,
-              'NRF52_FP1_ENGA' : 0x1000,
-              'NRF51_XLR3LC'   : 0x400,
-              'NRF51_XLR3P'    : 0x400,
-              'NRF51_L3'       : 0x400,
-              'NRF51_XLR3'     : 0x400,
-              'NRF51_XLR2'     : 0x400,
-              'NRF51_XLR1'     : 0x400}
+PAGE_SIZE = {'NRF52_FP1'      : 0x1000,
+             'NRF52_FP1_ENGB' : 0x1000,
+             'NRF52_FP1_ENGA' : 0x1000,
+             'NRF51_XLR3LC'   : 0x400,
+             'NRF51_XLR3P'    : 0x400,
+             'NRF51_L3'       : 0x400,
+             'NRF51_XLR3'     : 0x400,
+             'NRF51_XLR2'     : 0x400,
+             'NRF51_XLR1'     : 0x400}
 
 
 class NRF5xDevice(object):
@@ -67,26 +67,24 @@ class NRF5xDevice(object):
     Class representing an nRF5x device.
 
     """
-    
-    FLASH_START = 0x0
-    RAM_START = 0x20000000
-    FICR_START = 0x10000000
-    UICR_START = 0x10001000
+
+    flash_start = 0x0
+    ram_start = 0x20000000
+    ficr_start = 0x10000000
+    uicr_start = 0x10001000
 
     def __init__(self, device_version):
         """
         Initialize the device specific specs.
 
         """
-        self.FLASH_END = self.FLASH_START + FLASH_SIZE[device_version]
-        self.RAM_END = self.RAM_START + RAM_SIZE[device_version]
+        self.flash_size = FLASH_SIZE[device_version]
+        self.ram_size = RAM_SIZE[device_version]
+        self.page_size = PAGE_SIZE[device_version]
 
-        self.PAGE_SIZE = PAGE_SIZE[device_version]
+        self.flash_end = self.flash_start + self.flash_size
+        self.ram_end = self.ram_start + self.ram_size
+        self.ficr_end = self.ficr_start + self.page_size
+        self.uicr_end = self.uicr_start + self.page_size
 
-        self.FICR_END = self.FICR_START + self.PAGE_SIZE
-        self.UICR_END = self.UICR_START + self.PAGE_SIZE
-
-        self.FLASH_SIZE = self.FLASH_END - self.FLASH_START
-        self.RAM_SIZE = self.RAM_END - self.RAM_START
-
-        self.NUMBER_OF_FLASH_PAGES_IN_CODE = self.FLASH_SIZE / self.PAGE_SIZE
+        self.number_of_flash_pages_in_code = self.flash_size / self.page_size

@@ -188,7 +188,7 @@ def memwr(args):
     nrf.log("Writing the device's memory.")
 
     flash = False
-    if (args.addr in range(nrf.device.FLASH_START, nrf.device.FLASH_END) or args.addr in range(nrf.device.UICR_START, nrf.device.UICR_END)):
+    if (args.addr in range(nrf.device.flash_start, nrf.device.flash_end) or args.addr in range(nrf.device.uicr_start, nrf.device.uicr_end)):
         flash = True
 
     nrf.api.write_u32(args.addr, args.val, flash)
@@ -224,10 +224,10 @@ def program(args):
 
     for segment in test_program:
         if args.sectorserase or args.sectorsanduicrerase:
-            start_page = int(segment.address / nrf.device.PAGE_SIZE)
-            end_page = int((segment.address + len(segment.data)) / nrf.device.PAGE_SIZE)
+            start_page = int(segment.address / nrf.device.page_size)
+            end_page = int((segment.address + len(segment.data)) / nrf.device.page_size)
             for page in range(start_page, end_page + 1):
-                nrf.api.erase_page(page * nrf.device.PAGE_SIZE)
+                nrf.api.erase_page(page * nrf.device.page_size)
 
         nrf.api.write(segment.address, segment.data, True)
 
@@ -270,17 +270,17 @@ def readtofile(args):
         with open(args.file, 'w') as file:
             if args.readcode or not (args.readuicr or args.readram):
                 file.write('----------Code FLASH----------\n\n')
-                _output_data(nrf.device.FLASH_START, np.array(nrf.api.read(nrf.device.FLASH_START, nrf.device.FLASH_SIZE)), file)
+                _output_data(nrf.device.flash_start, np.array(nrf.api.read(nrf.device.flash_start, nrf.device.flash_size)), file)
                 file.write('\n\n')
             if args.readuicr:
                 file.write('----------UICR----------\n\n')
-                _output_data(nrf.device.UICR_START, np.array(nrf.api.read(nrf.device.UICR_START, nrf.device.PAGE_SIZE)), file)
+                _output_data(nrf.device.uicr_start, np.array(nrf.api.read(nrf.device.uicr_start, nrf.device.page_size)), file)
                 file.write('\n\n')
             if args.readram:
                 file.write('----------RAM----------\n\n')
-                _output_data(nrf.device.RAM_START, np.array(nrf.api.read(nrf.device.RAM_START, nrf.device.RAM_SIZE)), file)
+                _output_data(nrf.device.ram_start, np.array(nrf.api.read(nrf.device.ram_start, nrf.device.ram_size)), file)
     except IOError as error:
-        nrf.log("Error when opening/writing file.")
+        nrf.log("{}.".format(error))
 
     nrf.cleanup()
 
