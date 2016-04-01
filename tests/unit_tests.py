@@ -126,5 +126,4 @@ if __name__ == '__main__':
     Run the tests with specified options.
 
     """
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestEraseCommand)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.main(verbosity = 2)
