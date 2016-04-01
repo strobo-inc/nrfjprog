@@ -29,7 +29,7 @@
 """
 Test nrfjprog.exe that was built from our repo.
 
-Must add tests/dist on system running this script where dist/ contains the built exe and all it's dependencies.
+Must add tests/dist/SYSTEM_OS on system running this script where it contains the built .exe and all it's dependencies.
 """
 
 import subprocess
@@ -42,9 +42,9 @@ from pynrfjprog import API
 if sys.platform.lower().startswith('win'):
     PATH_TO_EXE = "dist\\windows_64\\nrfjprog.exe"
 elif sys.platform.lower().startswith('linux'):
-    PATH_TO_EXE = "dist\\linux_64\\nrfjprog"
+    PATH_TO_EXE = "dist/linux_64/nrfjprog"
 elif sys.platform.lower().startswith('dar'):
-    PATH_TO_EXE = "dist\\mac_osx_64\\nrfjprog"
+    PATH_TO_EXE = "dist/mac_osx_64/nrfjprog"
 
 
 def run_exe(cmd):
@@ -64,9 +64,9 @@ def setup_api():
 
     :return Object api: Instance of API that is initialized and connected to the target device, ready to be used.
     """
-    api = API.API('NRF52')
+    api = API.API('NRF52') # TODO: Should not be hard coded.
     api.open()
-    api.connect_to_emu_without_snr()
+    api.connect_to_emu_without_snr() # TODO: Should have the option for snr.
     return api
 
 def cleanup_api(api):
@@ -115,7 +115,7 @@ class TestEraseCommand(TestBaseClass):
     def test_erase_help(self):
         self.assertTrue(run_exe(["erase", "-h"]) == 0)
 
-    def test_erase(self):
+    def test_erase(self): # Not a good unit test, just demonstrating using pynrfjprog.
         self.api.write_u32(0x0, 0x0, True)
         run_exe(["erase"])
         self.assertTrue(self.api.read_u32(0x0) == 0xFFFFFFFF)
@@ -130,7 +130,7 @@ class TestProgramCommand(TestBaseClass):
     def test_program_help(self):
         self.assertTrue(run_exe(["program", "-h"]) == 0)
 
-    def test_program(self): # Not a good unit test. Just demonstrating resources\.
+    def test_program(self): # Not a good unit test, just demonstrating resources\.
         self.assertTrue(run_exe(["program", "-f", "resources\\ble_app_hrs_s132_with_dfu_pca10040.hex"]) == 0)
         self.assertTrue(run_exe(["verify", "-f", "resources\\ble_app_hrs_s132_with_dfu_pca10040.hex"]) == 0)
 
@@ -140,4 +140,4 @@ if __name__ == '__main__':
     Run the tests with specified options.
 
     """
-    unittest.main(verbosity = 2)
+    unittest.main(verbosity = 2) # TODO: Run tests in a way where specific Test Cases can be run or the entire suite.
