@@ -121,6 +121,20 @@ class TestEraseCommand(TestBaseClass):
         self.assertTrue(self.api.read_u32(0x0) == 0xFFFFFFFF)
 
 
+class TestProgramCommand(TestBaseClass):
+    """
+    Tests to verify the program command and it's arguments.
+
+    """
+
+    def test_program_help(self):
+        self.assertTrue(run_exe(["program", "-h"]) == 0)
+
+    def test_program(self): # Not a good unit test. Just demonstrating resources\.
+        self.assertTrue(run_exe(["program", "-f", "resources\\ble_app_hrs_s132_with_dfu_pca10040.hex"]) == 0)
+        self.assertTrue(run_exe(["verify", "-f", "resources\\ble_app_hrs_s132_with_dfu_pca10040.hex"]) == 0)
+
+
 if __name__ == '__main__':
     """
     Run the tests with specified options.
