@@ -22,7 +22,7 @@ The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to 
 # Structure
 ```python
 nrfjprog\
-  # LICENSE, README.md, setup.py and requirements.txt (used to install this module). tests\ to be added here in the future.
+  # LICENSE, README.md, setup.py and requirements.txt (used to install this module).
   nrfjprog\
     __init__.py # Package marker to make nrfjprog a module.
     __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and calls functions in perform_command.py to perform the requested operation.
@@ -31,6 +31,8 @@ nrfjprog\
         __init__.py # Package marker to make model a module.
         perform_command.py # This is where the functionality of each command is implemented. Relies on the pynrfjprog module.
         device.py # Implements a class to represent the specs of a specific device (i.e. NRF52_FP1).
+tests\
+  unit_tests.py # All of the unit tests for nrfjprog.exe. Requires that dist/OS/ to be present on system which contains the built .exe for the system's OS.
 ```
 
 # Architecture
