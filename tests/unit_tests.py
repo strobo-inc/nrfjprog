@@ -62,7 +62,7 @@ def setup_api():
     """
     Initialize api and connect to the target device.
 
-    :return Object api: Instance of API that is initialized and connected to the target device.
+    :return Object api: Instance of API that is initialized and connected to the target device, ready to be used.
     """
     api = API.API('NRF52')
     api.open()
@@ -75,49 +75,42 @@ def cleanup_api(api):
     api = None
 
 
-class TestHelpScreens(unittest.TestCase):
+class TestBaseClass(unittest.TestCase):
     """
-
-
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        pass
-        
-    @classmethod
-    def tearDownClass(cls):
-        pass
-    
-    def setUp(self):
-        pass
-        
-    def tearDown(self):
-        pass
-
-    def test_help(self):
-        self.assertTrue(run_exe(["-h"]) == 0)
-
-
-class TestEraseCommand(unittest.TestCase):
-    """
-
+    Base class that does the common setup/tear down to parent all specific test cases.
 
     """
 
     @classmethod
     def setUpClass(cls):
         cls.api = setup_api()
-        
+
     @classmethod
     def tearDownClass(cls):
         cleanup_api(cls.api)
-    
+
     def setUp(self):
         self.api.recover()
-        
+    
     def tearDown(self):
         pass
+
+
+class TestHelpScreens(TestBaseClass):
+    """
+    Tests to verify nrfjprog runs.
+
+    """
+
+    def test_help(self):
+        self.assertTrue(run_exe(["-h"]) == 0)
+
+
+class TestEraseCommand(TestBaseClass):
+    """
+    Tests to verify the erase command and it's arguments.
+
+    """
 
     def test_erase_help(self):
         self.assertTrue(run_exe(["erase", "-h"]) == 0)
