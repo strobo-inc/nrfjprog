@@ -43,7 +43,7 @@ class SetupCommand(object):
     Class that handles the pynrfjprog api instance, some shared arguments, and logging.
 
     """
-    
+
     def __init__(self, args, do_not_initialize_api=False):
         """
         Initialize the class's properties, sets up the connection to our target device and configures some printing options.
@@ -135,11 +135,8 @@ class SetupCommand(object):
         return True
 
 
-"""
-The callback functions that are called from __main__.py (argparse) based on the command-line input.
-
-All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
-"""
+# The callback functions that are called from __main__.py (argparse) based on the command-line input.
+# All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
 
 def erase(args):
     nrf = SetupCommand(args)
@@ -200,7 +197,7 @@ def pinresetenable(args):
     nrf.log("Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
 
     assert(nrf.device_version[:5] != 'NRF51'), "Enabling pin reset is not a valid command for nRF51 devices."
-  
+
     uicr_pselreset0_addr = 0x10001200
     uicr_pselreset1_addr = 0x10001204
     uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
@@ -344,10 +341,7 @@ def version(args):
     api.close()
 
 
-"""
-Helper functions.
-
-"""
+# Helper functions.
 
 def _output_data(addr, byte_array, file=None):
     """

@@ -103,11 +103,7 @@ class Nrfjprog(object):
         self._add_verify_command()
         self._add_version_command()
 
-
-    """
-    The top-level positional commands of our command-line interface.
-
-    """
+    # The top-level positional commands of our command-line interface.
 
     def _add_erase_command(self):
         erase_parser = self.subparsers.add_parser('erase', help="Erases the device's FLASH.")
@@ -198,11 +194,7 @@ class Nrfjprog(object):
         version_parser = self.subparsers.add_parser('version', help='Display the nrfjprog and JLinkARM DLL versions.')
         self.add_common_properties_to_command(version_parser, perform_command.version, connects=False)
 
-
-    """
-    Mutually exclusive groups. argparse will make sure only one of the arguments in a mutually exclusive group was present on the command-line.
-
-    """
+    # Mutually exclusive groups. argparse will make sure only one of the arguments in a mutually exclusive group was present on the command-line.
 
     def _add_erase_group(self, parser):
         erase_group = parser.add_mutually_exclusive_group()
@@ -222,11 +214,7 @@ class Nrfjprog(object):
         self._add_pinreset_argument(reset_group)
         self._add_sysreset_argument(reset_group)
 
-
-    """
-    The add_argument helper functions. They define how a single command-line argument should be parsed. These are all options.
-
-    """
+    # The add_argument helper functions. They define how a single command-line argument should be parsed. These are all options.
 
     def _add_addr_argument(self, parser):
         parser.add_argument('-a', '--addr', type=self.auto_int, help='The address in memory to be read/written.', required=True)
@@ -297,11 +285,7 @@ class Nrfjprog(object):
     def _add_verify_argument(self, parser):
         parser.add_argument('-v', '--verify', action='store_true', help='Read back memory and verify that it matches FILE.')
 
-
-    """
-    Helpers.
-
-    """
+    # Helpers.
 
     @staticmethod
     def auto_int(number):
