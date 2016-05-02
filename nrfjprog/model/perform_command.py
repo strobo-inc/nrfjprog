@@ -44,6 +44,8 @@ class SetupCommand(object):
 
     """
 
+    DEFAULT_JLINK_SPEED_KHZ = 5000
+
     def __init__(self, args, do_not_initialize_api=False):
         """
         Initialize the class's properties, sets up the connection to our target device, and configures some logging options.
@@ -105,11 +107,11 @@ class SetupCommand(object):
         if self.args.snr and self.args.clockspeed:
             self.api.connect_to_emu_with_snr(self.args.snr, self.args.clockspeed)
         elif self.args.snr:
-            self.api.connect_to_emu_with_snr(self.args.snr)
+            self.api.connect_to_emu_with_snr(self.args.snr, self.DEFAULT_JLINK_SPEED_KHZ)
         elif self.args.clockspeed:
             self.api.connect_to_emu_without_snr(self.args.clockspeed)
         else:
-            self.api.connect_to_emu_without_snr()
+            self.api.connect_to_emu_without_snr(self.DEFAULT_JLINK_SPEED_KHZ)
 
     def _setup(self, device_family_guess):
         """
@@ -163,7 +165,7 @@ def ids(args):
     nrf = SetupCommand(args, do_not_initialize_api=True)
     nrf.log('Displaying the serial numbers of all debuggers connected to the PC.')
 
-    api = API.API('NRF51') # Device family type arbitrary since we are not connecting to a device. Use NRF51 by default.
+    api = API.API('NRF52') # Device family type arbitrary since we are not connecting to a device. Use NRF52 by default.
     api.open()
 
     ids = api.enum_emu_snr()
@@ -217,9 +219,9 @@ def program(args):
     if args.sectorsanduicrerase:
         nrf.api.erase_uicr()
 
-    test_program = Hex.Hex(args.file)
+    hex_file = Hex.Hex(args.file)
 
-    for segment in test_program:
+    for segment in hex_file:
         if args.sectorserase or args.sectorsanduicrerase:
             start_page = int(segment.address / nrf.device.page_size)
             end_page = int((segment.address + len(segment.data)) / nrf.device.page_size)
@@ -230,7 +232,7 @@ def program(args):
 
         if args.verify:
             read_data = nrf.api.read(segment.address, len(segment.data))
-            assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
+            assert (np.array(read_data).all == np.array(segment.data).all), 'Verify failed. Data readback from memory does not match data written.'
 
     if args.verify:
         nrf.log('Programming verified.')
@@ -321,7 +323,7 @@ def verify(args):
     hex_file = Hex.Hex(args.file)
     for segment in hex_file:
         read_data = nrf.api.read(segment.address, len(segment.data))
-        assert (read_data == segment.data), 'Verify failed. Data readback from memory does not match data written.'
+        assert (np.array(read_data).all == np.array(segment.data).all), 'Verify failed. Data readback from memory does not match data written.'
 
     nrf.log('Verified.')
 
@@ -331,7 +333,7 @@ def version(args):
     nrf = SetupCommand(args, do_not_initialize_api=True)
     nrf.log('Displaying the nrfjprog and JLinkARM DLL versions.')
 
-    api = API.API('NRF51')
+    api = API.API('NRF52')
     api.open()
 
     jlink_arm_dll_version = api.dll_version()
