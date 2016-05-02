@@ -46,10 +46,10 @@ class SetupCommand(object):
 
     def __init__(self, args, do_not_initialize_api=False):
         """
-        Initialize the class's properties, sets up the connection to our target device and configures some printing options.
+        Initialize the class's properties, sets up the connection to our target device, and configures some logging options.
 
-        :param Object  args:                  The arguments the command was called with.
-        :param Boolean do_not_initialize_api: If api should be initialized (the connection to the target device should be set up - a command may not need to connect to the target device).
+        :param Object args:                  Arguments the command was called with.
+        :param bool  do_not_initialize_api:  If api should be initialized (the connection to the target device should be set up - a command may not need to connect to the target device).
         """
         self.args = args
         self.api = None
@@ -57,9 +57,9 @@ class SetupCommand(object):
         self.device_version = None
 
         if not do_not_initialize_api:
-            if self._setup('NRF51'):
+            if self._setup('NRF52'):
                 pass
-            elif self._setup('NRF52'):
+            elif self._setup('NRF51'):
                 pass
             else:
                 assert(False), 'Unknown device family.'
@@ -115,7 +115,7 @@ class SetupCommand(object):
         """
         Connect to target device and check if device_family_guess is correct. If correct, initialize api and device_version and return True. Else, cleanup and return False.
 
-        :param  String:  The device family type to try.
+        :param  String device_family_guess: The device family type to try.
         :return Boolean: If device_family_guess was correct and we initialized everything successfully.
         """
         self.api = API.API(device_family_guess)
