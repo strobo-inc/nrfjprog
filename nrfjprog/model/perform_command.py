@@ -34,7 +34,7 @@ from intelhex import IntelHex
 import numpy as np
 from pynrfjprog import API
 
-import device
+from model import device
 import nrfjprog_version
 
 
@@ -222,6 +222,7 @@ def program(args):
     hex_file = IntelHex(args.file)
     for segment in hex_file.segments():
         start_addr, end_addr = segment
+        size = end_addr - start_addr
 
         if args.sectorserase or args.sectorsanduicrerase:
             start_page = int(start_addr / nrf.device.page_size)
@@ -229,12 +230,12 @@ def program(args):
             for page in range(start_page, end_page + 1):
                 nrf.api.erase_page(page * nrf.device.page_size)
 
-        data = hex_file.tobinarray(start=start_addr, size=(end_addr-start_addr))
+        data = hex_file.tobinarray(start=start_addr, size=(size))
         nrf.api.write(start_addr, data.tolist(), True)
 
         if args.verify:
-            read_data = nrf.api.read(start_addr, len(data))
-            assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
+            read_data = np.array(nrf.api.read(start_addr, len(data)))
+            assert (np.array_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
     if args.verify:
         nrf.log('Programming verified.')
