@@ -30,9 +30,9 @@
 This module can be seen as the model of nrfjprog in the MVC design pattern.
 
 """
-
+from intelhex import IntelHex
 import numpy as np
-from pynrfjprog import API, Hex
+from pynrfjprog import API
 
 import device
 import nrfjprog_version
@@ -219,20 +219,22 @@ def program(args):
     if args.sectorsanduicrerase:
         nrf.api.erase_uicr()
 
-    hex_file = Hex.Hex(args.file)
+    hex_file = IntelHex(args.file)
+    for segment in hex_file.segments():
+        start_addr, end_addr = segment
 
-    for segment in hex_file:
         if args.sectorserase or args.sectorsanduicrerase:
-            start_page = int(segment.address / nrf.device.page_size)
-            end_page = int((segment.address + len(segment.data)) / nrf.device.page_size)
+            start_page = int(start_addr / nrf.device.page_size)
+            end_page = int(end_addr / nrf.device.page_size)
             for page in range(start_page, end_page + 1):
                 nrf.api.erase_page(page * nrf.device.page_size)
 
-        nrf.api.write(segment.address, segment.data, True)
+        data = hex_file.tobinarray(start=start_addr, size=(end_addr-start_addr))
+        nrf.api.write(start_addr, data.tolist(), True)
 
         if args.verify:
-            read_data = nrf.api.read(segment.address, len(segment.data))
-            assert (np.array(read_data).all == np.array(segment.data).all), 'Verify failed. Data readback from memory does not match data written.'
+            read_data = nrf.api.read(start_addr, len(data))
+            assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
 
     if args.verify:
         nrf.log('Programming verified.')
@@ -320,10 +322,15 @@ def verify(args):
     nrf = SetupCommand(args)
     nrf.log("Verifying that the device's memory contains the correct data.")
 
-    hex_file = Hex.Hex(args.file)
-    for segment in hex_file:
-        read_data = nrf.api.read(segment.address, len(segment.data))
-        assert (np.array(read_data).all == np.array(segment.data).all), 'Verify failed. Data readback from memory does not match data written.'
+    hex_file = IntelHex(args.file)
+    for segment in hex_file.segments():
+        start_addr, end_addr = segment
+        size = end_addr - start_addr
+
+        data = hex_file.tobinarray(start=start_addr, size=size)
+        read_data = nrf.api.read(start_addr, size)
+
+        assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
 
     nrf.log('Verified.')
 
