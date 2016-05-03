@@ -1,3 +1,4 @@
 argparse
+intelhex
 numpy
 pynrfjprog
