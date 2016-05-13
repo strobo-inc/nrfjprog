@@ -1,4 +1,4 @@
 argparse
 intelhex
 numpy
-pynrfjprog
+pyocd
