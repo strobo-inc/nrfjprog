@@ -27,16 +27,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-This module can be seen as the model of nrfjprog in the MVC design pattern.
+
 
 """
 from intelhex import IntelHex
 import logging
-import numpy as np
 from pyOCD.board import MbedBoard
-
-from model import device
-import nrfjprog_version
 
 
 def _setup():
@@ -48,8 +44,6 @@ def _setup():
     board = MbedBoard.chooseBoard()
     return board.target, board.flash
 
-# The callback functions that are called from __main__.py (argparse) based on the command-line input.
-# All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
 
 def erase(args):
     pass
