@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mjdietzx/nrfjprog.svg?branch=master)](https://travis-ci.org/mjdietzx/nrfjprog)
+[![Build Status](https://travis-ci.org/NordicSemiconductor/nrfjprog.svg?branch=master)](https://travis-ci.org/mjdietzx/nrfjprog)
 [![PyPI](https://img.shields.io/pypi/l/Django.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # nrfjprog
@@ -25,11 +25,13 @@ nrfjprog\
   # LICENSE, README.md, setup.py and requirements.txt (used to install this module).
   nrfjprog\
     __init__.py # Package marker to make nrfjprog a module.
-    __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and calls functions in perform_command.py to perform the requested operation.
+    __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and calls functions in 
     nrfjprog_version.py # A global variable containing the version of nrfjprog.
       model\
         __init__.py # Package marker to make model a module.
-        perform_command.py # This is where the functionality of each command is implemented. Relies on the pynrfjprog module.
+        perform_command.py # Determines if a CMSIS-DAP/DAP-Link or JLink debugger is connected to the PC and fowards the command accordingly.
+        perform_command_daplink.py # This is where the functionality of each command is implemented. Relies on the pyOCD module.
+        perform_command_jlink.py # This is where the functionality of each command is implemented. Relies on the pynrfjprog module.
         device.py # Implements a class to represent the specs of a specific device (i.e. NRF52_FP1).
 tests\
   unit_tests.py # All of the unit tests for nrfjprog.exe. Requires that dist/OS/ to be present on system which contains the built .exe for the system's OS.
@@ -41,9 +43,13 @@ tests\
 Detailed below is how our software is stacked. Each layer depends on the layer below.
 """
 nrfjprog.exe # Command line tool providing high level programming functionality for nRF5x devices.
+
 pynrfjprog # Imports the nrfjprog DLL into Python and wraps it to be used in applications like this one or directly in scripts.
 nrfjprogdll # A DLL that does some error checking and calls SEGGER's JLink API. Wraps JLink API specifically for nRF5x devices.
 JLinkARMDLL # A DLL provided by SEGGER that works with SEGGER debuggers. Performs all low level operations with target device.
+
+or, if using a CMSIS-DAP/DAP-Link debugger, than only:
+pyOCD # https://github.com/mbedmicro/pyOCD.
 ```
 
 # Bundling as an executable
@@ -61,9 +67,9 @@ Currently we bundle into a single package but we can also bundle into a single e
 5. Add ~/nrfjprog/dist/nrfjprog to your path and call $ nrfjprog -h from any directory.
 
 # Coding Standard
-https://google.github.io/styleguide/pyguide.html  
-http://www.clifford.at/style.html
+*  https://google.github.io/styleguide/pyguide.html
+*  http://www.clifford.at/style.html
+*  http://semver.org/
 
 # Future
-We want nrfjprog to be flexible and open. We want it to be an option for our users all the way from development and testing to production programming. In the future we will open source pynrfjprog as well. This implementation will also
-allow for SEGGER to be used interchangeably with CMSIS-DAP/DAP-Link for example.
+We want nrfjprog to be flexible and open. We want it to be an option for our users all the way from development and testing to production programming.
