@@ -285,6 +285,7 @@ class Nrfjprog(object):
     def _add_verify_argument(self, parser):
         parser.add_argument('-v', '--verify', action='store_true', help='Read back memory and verify that it matches FILE.')
 
+
     # Helpers.
 
     @staticmethod
@@ -302,6 +303,7 @@ def main():
 
     Above we will define what arguments our program requires and argparse will figure out how to parse those from sys.argv.
     For info on argparse see: https://docs.python.org/3/library/argparse.html.
+
     """
     cli = Nrfjprog()
     cli.run()
