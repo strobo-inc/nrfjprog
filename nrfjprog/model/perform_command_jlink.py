@@ -36,6 +36,7 @@ from pynrfjprog import API
 
 from model import device
 import nrfjprog_version
+import perform_command
 
 
 class SetupCommand(object):
@@ -325,22 +326,6 @@ def version(args):
 
 
 # Helper functions.
-
-def _output_data(addr, byte_array, file=None):
-    """
-    When we read data from memory and output it to the console or file, we want to print with following format: ADDRESS: WORD\n
-
-    """
-    index = 0
-
-    while index < len(byte_array):
-        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
-        if file:
-            file.write(string + '\n')
-        else:
-            print(string)
-        addr = addr + 4
-        index = index + 4
 
 def _reset(nrf, args, default_sys_reset=False):
     """

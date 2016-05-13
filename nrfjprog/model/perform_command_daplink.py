@@ -33,16 +33,16 @@
 from intelhex import IntelHex
 import logging
 import numpy as np
+import os
 from pyOCD.board import MbedBoard
 from pyOCD.target import cortex_m
 
 from model import device
 import nrfjprog_version
+import perform_command
 
 
 def _setup():
-    #logging.basicConfig(level=logging.INFO)
-
     board = MbedBoard.chooseBoard()
     return board.target, board.flash
 
@@ -54,7 +54,7 @@ def erase(args):
     if args.erasepage:
         flash.erasePage(args.erasepage)
     elif args.eraseuicr:
-        assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+        assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
     else:
         flash.eraseAll()
 
@@ -63,37 +63,48 @@ def halt(args):
     target.halt()
 
 def ids(args):
-    assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+    assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
 
 def memrd(args):
     target, flash = _setup()
     data = target.readBlockMemoryUnaligned8(args.addr, args.length)
-    _output_data(args.addr, data)
+    perform_command.output_data(args.addr, data)
 
 def memwr(args):
     target, flash = _setup()
     target.write32(args.addr, args.val) # TODO: pyOCD can't write nRF5 FLASH.
 
 def pinresetenable(args):
-    assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+    assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
+    target, flash = _setup()
+
+    # BUG: shouldn't be possible for nRF51.
+
+    uicr_pselreset0_addr = 0x10001200
+    uicr_pselreset1_addr = 0x10001204
+    uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
+
+    target.write32(uicr_pselreset0_addr, uicr_pselreset_21_connect, True) # BUG: pyOCD can't write UICR.
+    target.write32(uicr_pselreset1_addr, uicr_pselreset_21_connect, True)
+    target.reset()
 
 def program(args):
     target, flash = _setup()
     flash.init()
 
-    if args.sectorserase or args.sectorsanduicrerase:
-        assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+    tmp_bin_file = 'tmp.bin'
 
     hex_file = IntelHex(args.file)
-    hex_file.tobinfile('tmp.bin')
-    flash.flashBinary('tmp.bin', chip_erase=args.eraseall, fast_verify=args.verify)
+    hex_file.tobinfile(tmp_bin_file)
+    flash.flashBinary(tmp_bin_file, chip_erase=args.eraseall, fast_verify=args.verify)
 
-    _reset(target, args)
+    if args.debugreset or args.pinreset or args.systemreset :
+        target.reset()
 
-    # TODO: Delete 'tmp.bin'.
+    os.remove(tmp_bin_file)
 
 def readback(args):
-    assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+    assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
 
 def readregs(args):
     target, flash = _setup()
@@ -110,22 +121,22 @@ def readtofile(args):
         with open(args.file, 'w') as file:
             if args.readcode or not (args.readuicr or args.readram):
                 file.write('----------Code FLASH----------\n\n')
-                _output_data(nRF5_device.flash_start, np.array(target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size)), file)
+                perform_command.output_data(nRF5_device.flash_start, np.array(target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size)), file)
                 file.write('\n\n')
             if args.readuicr:
                 file.write('----------UICR----------\n\n')
-                _output_data(nRF5_device.uicr_start, np.array(target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size)), file)
+                perform_command.output_data(nRF5_device.uicr_start, np.array(target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size)), file)
                 file.write('\n\n')
             if args.readram:
                 file.write('----------RAM----------\n\n')
-                _output_data(nRF5_device.ram_start, np.array(target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size)), file)
+                perform_command.output_data(nRF5_device.ram_start, np.array(target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size)), file)
     except IOError as error:
         pass # TODO: do something...
 
 def recover(args):
     target, flash = _setup()
 
-    target.setAutoUnlock() # TODO: This won't work.
+    # target.setAutoUnlock() # TODO: This won't work.
     flash.init()
     flash.eraseAll()
 
@@ -152,32 +163,3 @@ def verify(args):
 
 def version(args):
     print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
-
-
-# Helper functions.
-
-def _output_data(addr, byte_array, file=None):
-    """
-    When we read data from memory and output it to the console or file, we want to print with following format: ADDRESS: WORD\n
-
-    """
-    index = 0
-
-    while index < len(byte_array):
-        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
-        if file:
-            file.write(string + '\n')
-        else:
-            print(string)
-        addr = addr + 4
-        index = index + 4
-
-def _reset(target, args, default_sys_reset=False):
-    """
-    Reset and run the device.
-
-    """
-    if args.debugreset or args.pinreset or args.systemreset or default_sys_reset:
-        target.reset()
-    else:
-        return
