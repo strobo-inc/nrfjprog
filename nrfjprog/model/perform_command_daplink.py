@@ -32,8 +32,11 @@
 """
 from intelhex import IntelHex
 import logging
+import numpy as np
 from pyOCD.board import MbedBoard
+from pyOCD.target import cortex_m
 
+from model import device
 import nrfjprog_version
 
 
@@ -87,14 +90,37 @@ def program(args):
 
     _reset(target, args)
 
+    # TODO: Delete 'tmp.bin'.
+
 def readback(args):
     pass
 
 def readregs(args):
-    pass
+    target, flash = _setup()
+
+    for reg in cortex_m.CORE_REGISTER:
+        if cortex_m.CORE_REGISTER[reg] in range(0, 16):
+            print(target.readCoreRegister(reg))
 
 def readtofile(args):
-    pass
+    target, flash = _setup()
+    nRF5_device = device.NRF5xDevice('NRF52_FP1') # TODO: This should not be hard-coded.
+
+    try:
+        with open(args.file, 'w') as file:
+            if args.readcode or not (args.readuicr or args.readram):
+                file.write('----------Code FLASH----------\n\n')
+                _output_data(nRF5_device.flash_start, np.array(target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size)), file)
+                file.write('\n\n')
+            if args.readuicr:
+                file.write('----------UICR----------\n\n')
+                _output_data(nRF5_device.uicr_start, np.array(target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size)), file)
+                file.write('\n\n')
+            if args.readram:
+                file.write('----------RAM----------\n\n')
+                _output_data(nRF5_device.ram_start, np.array(target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size)), file)
+    except IOError as error:
+        pass # TODO: do something...
 
 def recover(args):
     pass
@@ -108,7 +134,17 @@ def run(args):
     target.resume()
 
 def verify(args):
-    pass
+    target, flash = _setup()
+
+    hex_file = IntelHex(args.file)
+    for segment in hex_file.segments():
+        start_addr, end_addr = segment
+        size = end_addr - start_addr
+
+        data = hex_file.tobinarray(start=start_addr, size=size)
+        read_data = target.readBlockMemoryUnaligned8(start_addr, size)
+
+        assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
 
 def version(args):
     print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
