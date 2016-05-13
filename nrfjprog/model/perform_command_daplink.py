@@ -34,11 +34,10 @@ from intelhex import IntelHex
 import logging
 from pyOCD.board import MbedBoard
 
+import nrfjprog_version
+
 
 def _setup():
-    """
-
-    """
     logging.basicConfig(level=logging.INFO)
 
     board = MbedBoard.chooseBoard()
@@ -46,12 +45,17 @@ def _setup():
 
 
 def erase(args):
-    pass
+    target, flash = _setup()
+    flash.init()
+
+    if args.erasepage:
+        flash.erasePage(args.erasepage)
+    elif args.eraseuicr:
+        assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+    else:
+        flash.eraseAll()
 
 def halt(args):
-    """
-
-    """
     target, flash = _setup()
     target.halt()
 
@@ -59,16 +63,29 @@ def ids(args):
     pass
 
 def memrd(args):
-    pass
+    target, flash = _setup()
+    data = target.readBlockMemoryUnaligned8(args.addr, args.length)
+    _output_data(args.addr, data)
 
 def memwr(args):
-    pass
+    target, flash = _setup()
+    target.write32(args.addr, args.val) # TODO: pyOCD can't write nRF5 FLASH.
 
 def pinresetenable(args):
     pass
 
 def program(args):
-    pass
+    target, flash = _setup()
+    flash.init()
+
+    if args.sectorserase or args.sectorsanduicrerase:
+        assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
+
+    hex_file = IntelHex(args.file)
+    hex_file.tobinfile('tmp.bin')
+    flash.flashBinary('tmp.bin', chip_erase=args.eraseall, fast_verify=args.verify)
+
+    _reset(target, args)
 
 def readback(args):
     pass
@@ -83,16 +100,10 @@ def recover(args):
     pass
 
 def reset(args):
-    """
-
-    """
     target, flash = _setup()
     target.reset()
 
 def run(args):
-    """
-
-    """
     target, flash = _setup()
     target.resume()
 
@@ -100,4 +111,33 @@ def verify(args):
     pass
 
 def version(args):
-    pass
+    print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
+
+
+# Helper functions.
+
+def _output_data(addr, byte_array, file=None):
+    """
+    When we read data from memory and output it to the console or file, we want to print with following format: ADDRESS: WORD\n
+
+    """
+    index = 0
+
+    while index < len(byte_array):
+        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
+        if file:
+            file.write(string + '\n')
+        else:
+            print(string)
+        addr = addr + 4
+        index = index + 4
+
+def _reset(target, args, default_sys_reset=False):
+    """
+    Reset and run the device.
+
+    """
+    if args.debugreset or args.pinreset or args.systemreset or default_sys_reset:
+        target.reset()
+    else:
+        return
