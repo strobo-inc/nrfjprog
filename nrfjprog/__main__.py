@@ -34,6 +34,7 @@ This module can be seen as the view & controller of nrfjprog in the MVC design p
 import argparse
 
 from model import perform_command
+from model import perform_command_daplink
 
 
 class Nrfjprog(object):
@@ -66,6 +67,9 @@ class Nrfjprog(object):
         @param boolean        connects: If this command connects to the emulator (debugger) and should have the option to set the clock speed/serial number.
         """
         self._add_quiet_argument(parser)
+
+        # TODO: find a better way to do this.
+        self._add_dap_link_argument(parser)
 
         if connects:
             self._add_clockspeed_argument(parser)
@@ -173,7 +177,7 @@ class Nrfjprog(object):
 
     def _add_reset_command(self):
         reset_parser = self.subparsers.add_parser('reset', help='Resets the device.')
-        self.add_common_properties_to_command(reset_parser, perform_command.reset)
+        self.add_common_properties_to_command(reset_parser, perform_command_daplink.reset)
 
         self._add_reset_group(reset_parser)
 
@@ -221,6 +225,9 @@ class Nrfjprog(object):
 
     def _add_clockspeed_argument(self, parser):
         parser.add_argument('-c', '--clockspeed', type=int, metavar='CLOCKSPEEDKHZ', help='Sets the debugger SWD clock speed in kHz for the operation.')
+
+    def _add_dap_link_argument(self, parser):
+        parser.add_argument('--daplink', action='store_true', help='Sets up nrfjprog to use DAPLink to perform commands instead of JLink.')
 
     def _add_debugreset_argument(self, parser):
         parser.add_argument('-d', '--debugreset', action='store_true', help='Executes a debug reset.')

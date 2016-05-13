@@ -36,6 +36,7 @@ from pynrfjprog import API
 
 from model import device
 import nrfjprog_version
+import perform_command_daplink
 
 
 class SetupCommand(object):
@@ -154,6 +155,9 @@ def erase(args):
     nrf.cleanup()
 
 def halt(args):
+    if args.daplink:
+        return perform_command_daplink.halt(args)
+
     nrf = SetupCommand(args)
     nrf.log("Halting the device's CPU.")
 
@@ -299,6 +303,9 @@ def recover(args):
     nrf.cleanup()
 
 def reset(args):
+    if args.daplink:
+        return perform_command_daplink.reset(args)
+
     nrf = SetupCommand(args)
     nrf.log('Resetting the device.')
 
@@ -307,6 +314,9 @@ def reset(args):
     nrf.cleanup()
 
 def run(args):
+    if args.daplink:
+        return perform_command_daplink.run(args)
+
     nrf = SetupCommand(args)
     nrf.log("Running the device's CPU.")
 

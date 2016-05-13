@@ -1,0 +1,109 @@
+# Copyright (c) 2016, Nordic Semiconductor
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of Nordic Semiconductor ASA nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+"""
+This module can be seen as the model of nrfjprog in the MVC design pattern.
+
+"""
+from intelhex import IntelHex
+import logging
+import numpy as np
+from pyOCD.board import MbedBoard
+
+from model import device
+import nrfjprog_version
+
+
+def _setup():
+    """
+
+    """
+    logging.basicConfig(level=logging.INFO)
+
+    board = MbedBoard.chooseBoard()
+    return board.target, board.flash
+
+# The callback functions that are called from __main__.py (argparse) based on the command-line input.
+# All functions follow the same structure: initialize NRF5x, log (exactly what the help menu prints for the command, but in different tense), perform functionality, cleanup.
+
+def erase(args):
+    pass
+
+def halt(args):
+    """
+
+    """
+    target, flash = _setup()
+    target.halt()
+
+def ids(args):
+    pass
+
+def memrd(args):
+    pass
+
+def memwr(args):
+    pass
+
+def pinresetenable(args):
+    pass
+
+def program(args):
+    pass
+
+def readback(args):
+    pass
+
+def readregs(args):
+    pass
+
+def readtofile(args):
+    pass
+
+def recover(args):
+    pass
+
+def reset(args):
+    """
+
+    """
+    target, flash = _setup()
+    target.reset()
+
+def run(args):
+    """
+
+    """
+    target, flash = _setup()
+    target.resume()
+
+def verify(args):
+    pass
+
+def version(args):
+    pass
