@@ -41,7 +41,7 @@ import nrfjprog_version
 
 
 def _setup():
-    logging.basicConfig(level=logging.INFO)
+    #logging.basicConfig(level=logging.INFO)
 
     board = MbedBoard.chooseBoard()
     return board.target, board.flash
@@ -63,7 +63,7 @@ def halt(args):
     target.halt()
 
 def ids(args):
-    pass
+    assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
 
 def memrd(args):
     target, flash = _setup()
@@ -75,7 +75,7 @@ def memwr(args):
     target.write32(args.addr, args.val) # TODO: pyOCD can't write nRF5 FLASH.
 
 def pinresetenable(args):
-    pass
+    assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
 
 def program(args):
     target, flash = _setup()
@@ -93,7 +93,7 @@ def program(args):
     # TODO: Delete 'tmp.bin'.
 
 def readback(args):
-    pass
+    assert(False), 'Not implemented in pyOCD.' # TODO: Fix this in pyOCD.
 
 def readregs(args):
     target, flash = _setup()
@@ -123,7 +123,11 @@ def readtofile(args):
         pass # TODO: do something...
 
 def recover(args):
-    pass
+    target, flash = _setup()
+
+    target.setAutoUnlock() # TODO: This won't work.
+    flash.init()
+    flash.eraseAll()
 
 def reset(args):
     target, flash = _setup()
