@@ -67,9 +67,6 @@ class Nrfjprog(object):
         """
         self._add_quiet_argument(parser)
 
-        # TODO: find a better way to do this.
-        self._add_dap_link_argument(parser)
-
         if connects:
             self._add_clockspeed_argument(parser)
             self._add_snr_argument(parser)
@@ -224,9 +221,6 @@ class Nrfjprog(object):
 
     def _add_clockspeed_argument(self, parser):
         parser.add_argument('-c', '--clockspeed', type=int, metavar='CLOCKSPEEDKHZ', help='Sets the debugger SWD clock speed in kHz for the operation.')
-
-    def _add_dap_link_argument(self, parser):
-        parser.add_argument('--daplink', action='store_true', help='Sets up nrfjprog to use DAPLink to perform commands instead of JLink.')
 
     def _add_debugreset_argument(self, parser):
         parser.add_argument('-d', '--debugreset', action='store_true', help='Executes a debug reset.')

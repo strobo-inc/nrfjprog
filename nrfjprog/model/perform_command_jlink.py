@@ -153,7 +153,8 @@ def ids(args):
     api.open()
 
     ids = api.enum_emu_snr()
-    print(sorted(ids))
+    if ids:
+        print(sorted(ids))
 
     api.close()
 

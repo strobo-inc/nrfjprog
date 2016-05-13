@@ -30,6 +30,8 @@
 This module can be seen as the model of nrfjprog in the MVC design pattern.
 
 """
+from pynrfjprog import API
+
 import perform_command_daplink
 import perform_command_jlink
 
@@ -44,6 +46,22 @@ def log(args, msg):
     else:
         print(msg)
 
+def is_jlink():
+    """
+    Check if PC is connected to a SEGGER JLink debugger.
+
+    """
+    api = API.API('NRF52')
+    api.open()
+
+    if api.enum_emu_snr(): # BUG: What happens if both a JLink and DAP-Link debugger are both connected to the PC?
+        return_value = True
+    else:
+        return_value = False
+
+    api.close()
+    return return_value
+
 
 # The callback functions that are called from __main__.py (argparse) based on the command-line input.
 # All functions follow the same structure: log (exactly what the help menu prints for the command but in different tense), initialize NRF5 device, perform functionality, cleanup.
@@ -51,7 +69,7 @@ def log(args, msg):
 def erase(args):
     log(args, 'Erasing the device.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.erase(args)
     else:
         perform_command_daplink.erase(args)
@@ -59,7 +77,7 @@ def erase(args):
 def halt(args):
     log(args, "Halting the device's CPU.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.halt(args)
     else:
         perform_command_daplink.halt(args)
@@ -67,7 +85,7 @@ def halt(args):
 def ids(args):
     log(args, 'Displaying the serial numbers of all debuggers connected to the PC.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.ids(args)
     else:
         perform_command_daplink.ids(args)
@@ -75,7 +93,7 @@ def ids(args):
 def memrd(args):
     log(args, "Reading the device's memory.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.memrd(args)
     else:
         perform_command_daplink.memrd(args)
@@ -83,7 +101,7 @@ def memrd(args):
 def memwr(args):
     log(args, "Writing the device's memory.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.memwr(args)
     else:
         perform_command_daplink.memwr(args)
@@ -91,7 +109,7 @@ def memwr(args):
 def pinresetenable(args):
     log(args, "Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.pinresetenable(args)
     else:
         perform_command_daplink.pinresetenable(args)
@@ -99,7 +117,7 @@ def pinresetenable(args):
 def program(args):
     log(args, 'Programming the device.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.program(args)
     else:
         perform_command_daplink.program(args)
@@ -107,7 +125,7 @@ def program(args):
 def readback(args):
     log(args, 'Enabling the readback protection mechanism.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.readback(args)
     else:
         perform_command_daplink.readback(args)
@@ -115,7 +133,7 @@ def readback(args):
 def readregs(args):
     log(args, 'Reading the CPU registers.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.readregs(args)
     else:
         perform_command_daplink.readregs(args)
@@ -123,7 +141,7 @@ def readregs(args):
 def readtofile(args):
     log(args, "Reading and storing the device's memory.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.readtofile(args)
     else:
         perform_command_daplink.readtofile(args)
@@ -131,7 +149,7 @@ def readtofile(args):
 def recover(args):
     log(args, "Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.recover(args)
     else:
         perform_command_daplink.recover(args)
@@ -139,7 +157,7 @@ def recover(args):
 def reset(args):
     log(args, 'Resetting the device.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.reset(args)
     else:
         perform_command_daplink.reset(args)
@@ -147,7 +165,7 @@ def reset(args):
 def run(args):
     log(args, "Running the device's CPU.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.run(args)
     else:
         perform_command_daplink.run(args)
@@ -155,7 +173,7 @@ def run(args):
 def verify(args):
     log(args, "Verifying that the device's memory contains the correct data.")
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.verify(args)
     else:
         perform_command_daplink.verify(args)
@@ -163,7 +181,7 @@ def verify(args):
 def version(args):
     log(args, 'Displaying the nrfjprog and JLinkARM DLL versions.')
 
-    if not args.daplink:
+    if is_jlink():
         perform_command_jlink.version(args)
     else:
         perform_command_daplink.version(args)
