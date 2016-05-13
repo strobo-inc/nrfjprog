@@ -30,9 +30,6 @@
 This module can be seen as the model of nrfjprog in the MVC design pattern.
 
 """
-from intelhex import IntelHex
-import numpy as np
-
 import perform_command_daplink
 import perform_command_jlink
 
