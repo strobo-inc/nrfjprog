@@ -33,4 +33,4 @@ Version definition for nrfjprog.
 
 """
 
-NRFJPROG_VERSION = "0.0.2"
+NRFJPROG_VERSION = "0.1.0"
