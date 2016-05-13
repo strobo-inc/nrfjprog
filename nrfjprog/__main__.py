@@ -34,7 +34,6 @@ This module can be seen as the view & controller of nrfjprog in the MVC design p
 import argparse
 
 from model import perform_command
-from model import perform_command_daplink
 
 
 class Nrfjprog(object):
@@ -177,7 +176,7 @@ class Nrfjprog(object):
 
     def _add_reset_command(self):
         reset_parser = self.subparsers.add_parser('reset', help='Resets the device.')
-        self.add_common_properties_to_command(reset_parser, perform_command_daplink.reset)
+        self.add_common_properties_to_command(reset_parser, perform_command.reset)
 
         self._add_reset_group(reset_parser)
 
