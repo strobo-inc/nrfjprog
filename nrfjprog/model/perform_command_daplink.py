@@ -34,9 +34,8 @@ import os
 from pyOCD.board import MbedBoard
 from pyOCD.target import cortex_m
 
-from model import device
-import nrfjprog_version
-import perform_command
+from nrfjprog.model import device
+from nrfjprog import nrfjprog_version
 
 
 @enum.unique

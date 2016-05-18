@@ -34,7 +34,7 @@ It receives the command and options from the user and passes it to model/perform
 
 import argparse
 
-from model import perform_command
+from .model import perform_command
 
 
 class Nrfjprog(object):

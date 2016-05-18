@@ -26,17 +26,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""
-
-
-"""
 from intelhex import IntelHex
 import numpy as np
 from pynrfjprog import API
 
-from model import device
-import nrfjprog_version
-import perform_command
+from nrfjprog.model import device
+from nrfjprog import nrfjprog_version
+from nrfjprog.model import perform_command
 
 
 class SetupCommand(object):
@@ -215,9 +211,6 @@ def program(args):
             read_data = np.array(nrf.api.read(start_addr, len(data)))
             assert (np.array_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
-    if args.verify:
-        nrf.log('Programming verified.')
-
     _reset(nrf, args)
 
     nrf.cleanup()
@@ -257,7 +250,7 @@ def readtofile(args):
                 file.write('----------RAM----------\n\n')
                 _output_data(nrf.device.ram_start, np.array(nrf.api.read(nrf.device.ram_start, nrf.device.ram_size)), file)
     except IOError as error:
-        nrf.log("{}.".format(error))
+        print("{}.".format(error))
 
     nrf.cleanup()
 
@@ -303,8 +296,6 @@ def verify(args):
         read_data = nrf.api.read(start_addr, size)
 
         assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
-
-    nrf.log('Verified.')
 
     nrf.cleanup()
 

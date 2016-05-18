@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright (c) 2016, Nordic Semiconductor
 # All rights reserved.
 #
@@ -29,15 +27,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-Setup script for pynrfjprog.
+Setup script for nrfjprog.
 
 USAGE:
-    python setup.py install
+    python setup.py install or python setup.py bdist_egg (to create a Python egg)
 """
 
 import os
 from setuptools import setup, find_packages
 import sys
+
+from nrfjprog import nrfjprog_version
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -45,16 +46,17 @@ def read(fname):
 def read_requirements(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).readlines()
 
+
 setup(
     name ='nrfjprog',
-    version = nrfjprog.__version__,
+    version = nrfjprog_version.NRFJPROG_VERSION,
     description = 'The nrfjprog command line tool implemented in Python.',
     long_description=read('README.md'),
-    url = 'http://www.nordicsemi.com/',
+    url = 'https://github.com/NordicSemiconductor/nrfjprog',
     author = 'Nordic Semiconductor ASA',
     license = 'BSD',
     classifiers = [
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
@@ -69,7 +71,11 @@ setup(
     ],
     keywords = 'nRF5 nRF51 nRF52 nrfjprog pynrfjprog pyOCD Nordic Semiconductor SEGGER JLink',
     install_requires = read_requirements('requirements.txt'),
-    packages = find_packages()
-    # package_data = {}
+    packages = find_packages(exclude=["tests.*", "tests"]),
+    include_package_data=False,
+    entry_points = {
+        'console_scripts': [
+            'nrfjprog = nrfjprog.__main__:main'
+        ]
+    }
 )
-

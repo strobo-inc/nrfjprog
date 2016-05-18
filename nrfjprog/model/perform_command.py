@@ -32,8 +32,8 @@ This module receives user input from __main__.py and performs the operation via 
 """
 from pynrfjprog import API
 
-import perform_command_daplink
-import perform_command_jlink
+from nrfjprog.model import perform_command_daplink
+from nrfjprog.model import perform_command_jlink
 
 
 def log(args, msg):
