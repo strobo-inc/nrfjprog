@@ -2,22 +2,23 @@
 [![PyPI](https://img.shields.io/pypi/l/Django.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # nrfjprog
-The nrfjprog command-line tool implemented in Python. nrfjprog.exe is a tool to program Nordic Semiconductor's nRF51 and nRF52 series devices. Using a tool such as PyInstaller or py2exe this module can be converted to a stand-alone (cross-platform) executable. This will give the user the option to run nrfjprog without worrying about their python environment or to use this module in their custom scripts (i.e. automated testing) as a higher-level alternative/supplement to pynrfjprog.
+nrfjprog is a tool to program and debug Nordic Semiconductor's nRF5 series devices. Using a tool such as PyInstaller or py2exe this module can be converted to a stand-alone (cross-platform) executable. The user has the option to run nrfjprog without worrying about a python environment (as an exe), or to use this module in their custom scripts as a higher-level alternative/supplement to pynrfjprog.  
+nrfjprog will automatically determine whether the PC is connected to a JLink debugger or a CMSIS-DAP/DAP-Link debugger, and use pynrfjprog or pyOCD accordingly to interface with the target device.
+
+# Running in Python
+1. Clone or download this repository and navigate to the repo's root directory ~/nrfjprog/.
+2. $ python setup.py install or $ sudo pip install -r requirements.txt
+  *  If installing via setup.py, an entry point will be created for the package. Open a terminal in any directory and run $ nrfjprog -h (Note: nrfjprog is a Python script, not an executable).
+3. $ python -m nrfjprog --help
+4. $ python -m nrfjprog program --help
+5. $ python -m nrfjprog program --file PATH_TO_APP.hex --eraseall --verify --systemreset
 
 # Running the exe
-1. Download the zipped 'dist' folder for your operating system and extract it.
-2. Either add the path containing 'nrfjprog.exe' to your environment variables or navigate to that directory in ~/dist/.
+1. In Releases, download the correct compressed folder for your operating system and extract it.
+2. Either add the path containing 'nrfjprog.exe' to your environment variables or navigate to it's directory.
 3. $ nrfjprog -h (nrfjprog.exe -h if path not added to your environment variables).
 4. $ nrfjprog program -h
 5. $ nrfjprog program -f PATH_TO_APP.hex -e -v -r
-
-# Running in Python
-1. $ sudo pip install -r requirements.txt
-2. Clone or download this repository.
-3. Navigate to the repository's root directory (~/nrfjprog/).
-4. $ python nrfjprog --help
-5. $ python nrfjprog program --help
-5. $ python nrfjprog program --file PATH_TO_APP.hex --eraseall --verify --systemreset
 
 # Structure
 ```python
@@ -25,8 +26,8 @@ nrfjprog\
   # LICENSE, README.md, setup.py and requirements.txt (used to install this module).
   nrfjprog\
     __init__.py # Package marker to make nrfjprog a module.
-    __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and calls functions in 
-    nrfjprog_version.py # A global variable containing the version of nrfjprog.
+    __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and fowards them to perform_command.py.
+    nrfjprog_version.py # A global variable containing the current version number of nrfjprog.
       model\
         __init__.py # Package marker to make model a module.
         perform_command.py # Determines if a CMSIS-DAP/DAP-Link or JLink debugger is connected to the PC and fowards the command accordingly.
@@ -48,7 +49,7 @@ pynrfjprog # Imports the nrfjprog DLL into Python and wraps it to be used in app
 nrfjprogdll # A DLL that does some error checking and calls SEGGER's JLink API. Wraps JLink API specifically for nRF5x devices.
 JLinkARMDLL # A DLL provided by SEGGER that works with SEGGER debuggers. Performs all low level operations with target device.
 
-or, if using a CMSIS-DAP/DAP-Link debugger, than only:
+or, if using a CMSIS-DAP/DAP-Link debugger, then only:
 pyOCD # https://github.com/mbedmicro/pyOCD.
 ```
 
