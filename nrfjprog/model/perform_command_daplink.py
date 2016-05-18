@@ -63,7 +63,7 @@ def halt(args):
     target.halt()
 
 def ids(args):
-    assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
+    MbedBoard.listConnectedBoards()
 
 def memrd(args):
     target, flash = _setup()
