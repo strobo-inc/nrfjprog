@@ -32,7 +32,6 @@ from pynrfjprog import API
 
 from nrfjprog.model import device
 from nrfjprog import nrfjprog_version
-from nrfjprog.model import perform_command
 
 
 class SetupCommand(object):
