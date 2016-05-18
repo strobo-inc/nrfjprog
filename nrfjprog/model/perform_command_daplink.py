@@ -26,10 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""
-
-
-"""
 import enum
 from intelhex import IntelHex
 import logging
@@ -50,6 +46,8 @@ class Memory_Access_Mode(enum.IntEnum):
     ERASE_ENABLE = 2
 
 
+# Helpers.
+
 def _config_NVMC(target, access_mode):
     """
     Configure the NVMC to read, write, or erase FLASH.
@@ -58,24 +56,28 @@ def _config_NVMC(target, access_mode):
     NVMC_CONFIG_ADDR = 0x4001E504
     target.write32(NVMC_CONFIG_ADDR, access_mode)
 
+def _erase_uicr(target):
+    _config_NVMC(target, Memory_Access_Mode.ERASE_ENABLE)
+    target.write32(NVMC_ERASEUICR_ADDR, 1)
+    _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
 
 def _setup():
     board = MbedBoard.chooseBoard()
     return board.target, board.flash
 
 
+# Commands.
+
 def erase(args):
     target, flash = _setup()
     flash.init()
 
-    NVMC_ERASEUICR_ADDR = 0x4001E000
+    NVMC_ERASEUICR_ADDR = 0x4001E514
 
     if args.erasepage:
         flash.erasePage(args.erasepage)
     elif args.eraseuicr:
-        _config_NVMC(target, Memory_Access_Mode.ERASE_ENABLE)
-        target.write32(NVMC_ERASEUICR_ADDR, 1)
-        _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
+        _erase_uicr(target)
     else:
         flash.eraseAll()
 
@@ -98,10 +100,10 @@ def memwr(args):
 
     if perform_command.is_flash_addr(args.addr, nRF5_device):
         _config_NVMC(target, Memory_Access_Mode.WRITE_ENABLE)
-
-    target.write32(args.addr, args.val)
-
-    _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
+        target.write32(args.addr, args.val)
+        _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
+    else:
+        target.write32(args.addr, args.val)
 
 def pinresetenable(args):
     assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
@@ -123,11 +125,14 @@ def program(args):
 
     tmp_bin_file = 'tmp.bin'
 
+    if args.sectorsanduicrerase:
+        _erase_uicr(target) # TODO: May not be needed if pyOCD does this. Double check before removing.
+
     hex_file = IntelHex(args.file)
     hex_file.tobinfile(tmp_bin_file)
     flash.flashBinary(tmp_bin_file, chip_erase=args.eraseall, fast_verify=args.verify)
 
-    if args.debugreset or args.pinreset or args.systemreset :
+    if args.debugreset or args.pinreset or args.systemreset:
         target.reset()
 
     os.remove(tmp_bin_file)

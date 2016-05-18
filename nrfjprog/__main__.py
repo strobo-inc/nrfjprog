@@ -27,8 +27,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-This module can be seen as the view & controller of nrfjprog in the MVC design pattern.
+This module sets up and runs the command-line-interface for nrfjprog.
 
+It receives the command and options from the user and passes it to model/perform_command.
 """
 
 import argparse

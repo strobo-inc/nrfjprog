@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-This module receives user input from __main__.py and performs them via JLink (pynrfjprog) or DAP-Link/CMSIS-DAP (pyOCD).
+This module receives user input from __main__.py and performs the operation via JLink (pynrfjprog) or DAP-Link/CMSIS-DAP (pyOCD).
 
 """
 from pynrfjprog import API
@@ -46,28 +46,6 @@ def log(args, msg):
     else:
         print(msg)
 
-def is_flash_addr(addr, device):
-    """
-
-    """
-    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
-
-def is_jlink():
-    """
-    Check if PC is connected to a SEGGER JLink debugger.
-
-    """
-    api = API.API('NRF52')
-    api.open() # BUG: This will require the user to have JLink Software installed on their PC.
-
-    if api.enum_emu_snr(): # BUG: What happens if both a JLink and DAP-Link debugger are both connected to the PC?
-        return_value = True
-    else:
-        return_value = False
-
-    api.close()
-    return return_value
-
 
 # The callback functions that are called from __main__.py (argparse) based on the command-line input.
 # All functions follow the same structure: log (exactly what the help menu prints for the command but in different tense), initialize NRF5 device, perform functionality, cleanup.
@@ -75,10 +53,12 @@ def is_jlink():
 def erase(args):
     log(args, 'Erasing the device.')
     perform_command_jlink.erase(args) if is_jlink() else perform_command_daplink.erase(args)
+    log(args, 'Device erased.')
 
 def halt(args):
     log(args, "Halting the device's CPU.")
     perform_command_jlink.halt(args) if is_jlink() else perform_command_daplink.halt(args)
+    log(args, "Device's CPU halted.")
 
 def ids(args):
     log(args, 'Displaying the serial numbers of all debuggers connected to the PC.')
@@ -91,18 +71,22 @@ def memrd(args):
 def memwr(args):
     log(args, "Writing the device's memory.")
     perform_command_jlink.memwr(args) if is_jlink() else perform_command_daplink.memwr(args)
+    log(args, "Device's memory written.")
 
 def pinresetenable(args):
     log(args, "Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
     perform_command_jlink.pinresetenable(args) if is_jlink() else perform_command_daplink.pinresetenable(args)
+    log(args, "Pin reset enabled.")
 
 def program(args):
     log(args, 'Programming the device.')
     perform_command_jlink.program(args) if is_jlink() else perform_command_daplink.program(args)
+    log(args, 'Device programmed.')
 
 def readback(args):
     log(args, 'Enabling the readback protection mechanism.')
     perform_command_jlink.readback(args) if is_jlink() else perform_command_daplink.readback(args)
+    log(args, 'Readback protection mechanism enabled.')
 
 def readregs(args):
     log(args, 'Reading the CPU registers.')
@@ -111,22 +95,27 @@ def readregs(args):
 def readtofile(args):
     log(args, "Reading and storing the device's memory.")
     perform_command_jlink.readtofile(args) if is_jlink() else perform_command_daplink.readtofile(args)
+    log(args, "Device's memory read and stored")
 
 def recover(args):
     log(args, "Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
     perform_command_jlink.recover(args) if is_jlink() else perform_command_daplink.recover(args)
+    log(args, "Device recovered.")
 
 def reset(args):
     log(args, 'Resetting the device.')
     perform_command_jlink.reset(args) if is_jlink() else perform_command_daplink.reset(args)
+    log(args, 'Device reset.')
 
 def run(args):
     log(args, "Running the device's CPU.")
     perform_command_jlink.run(args) if is_jlink() else perform_command_daplink.run(args)
+    log(args, "Device's CPU running.")
 
 def verify(args):
     log(args, "Verifying that the device's memory contains the correct data.")
     perform_command_jlink.verify(args) if is_jlink() else perform_command_daplink.verify(args)
+    log(args, "Device's memory contains the correct data.")
 
 def version(args):
     log(args, 'Displaying the nrfjprog and JLinkARM DLL versions.')
@@ -135,9 +124,32 @@ def version(args):
 
 # Shared helper functions.
 
+def is_flash_addr(addr, device):
+    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
+
+def is_jlink():
+    """
+    Check if the PC is connected to a SEGGER JLink debugger.
+
+    """
+    api = API.API('NRF52')
+
+    try:
+        api.open()
+    except: # TODO: Catch specific exception.
+        return False
+
+    if api.enum_emu_snr(): # BUG: What happens if both a JLink and DAP-Link debugger are both connected to the PC?
+        return_value = True
+    else:
+        return_value = False
+
+    api.close()
+    return return_value
+
 def output_data(addr, byte_array, file=None):
     """
-    When we read data from memory and output it to the console or file, we want to print with following format: ADDRESS: WORD\n
+    Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
 
     """
     index = 0
