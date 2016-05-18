@@ -30,6 +30,7 @@
 
 
 """
+import enum
 from intelhex import IntelHex
 import logging
 import numpy as np
@@ -42,6 +43,22 @@ import nrfjprog_version
 import perform_command
 
 
+@enum.unique
+class Memory_Access_Mode(enum.IntEnum):
+    READ_ENABLE  = 0
+    WRITE_ENABLE = 1
+    ERASE_ENABLE = 2
+
+
+def _config_NVMC(target, access_mode):
+    """
+    Configure the NVMC to read, write, or erase FLASH.
+
+    """
+    NVMC_CONFIG_ADDR = 0x4001E504
+    target.write32(NVMC_CONFIG_ADDR, access_mode)
+
+
 def _setup():
     board = MbedBoard.chooseBoard()
     return board.target, board.flash
@@ -51,10 +68,14 @@ def erase(args):
     target, flash = _setup()
     flash.init()
 
+    NVMC_ERASEUICR_ADDR = 0x4001E000
+
     if args.erasepage:
         flash.erasePage(args.erasepage)
     elif args.eraseuicr:
-        assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
+        _config_NVMC(target, Memory_Access_Mode.ERASE_ENABLE)
+        target.write32(NVMC_ERASEUICR_ADDR, 1)
+        _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
     else:
         flash.eraseAll()
 
@@ -72,7 +93,15 @@ def memrd(args):
 
 def memwr(args):
     target, flash = _setup()
-    target.write32(args.addr, args.val) # TODO: pyOCD can't write nRF5 FLASH.
+
+    nRF5_device = device.NRF5xDevice('NRF52_FP1') # TODO: This should not be hard-coded.
+
+    if perform_command.is_flash_addr(args.addr, nRF5_device):
+        _config_NVMC(target, Memory_Access_Mode.WRITE_ENABLE)
+
+    target.write32(args.addr, args.val)
+
+    _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
 
 def pinresetenable(args):
     assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.

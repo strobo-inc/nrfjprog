@@ -46,6 +46,12 @@ def log(args, msg):
     else:
         print(msg)
 
+def is_flash_addr(addr, device):
+    """
+
+    """
+    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
+
 def is_jlink():
     """
     Check if PC is connected to a SEGGER JLink debugger.

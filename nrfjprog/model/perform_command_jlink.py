@@ -170,11 +170,7 @@ def memrd(args):
 def memwr(args):
     nrf = SetupCommand(args)
 
-    flash = False
-    if (args.addr in range(nrf.device.flash_start, nrf.device.flash_end) or args.addr in range(nrf.device.uicr_start, nrf.device.uicr_end)):
-        flash = True
-
-    nrf.api.write_u32(args.addr, args.val, flash)
+    nrf.api.write_u32(args.addr, args.val, perform_command.is_flash_addr(args.addr, nrf.device))
 
     nrf.cleanup()
 
