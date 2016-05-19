@@ -138,7 +138,7 @@ def program(args):
     os.remove(tmp_bin_file)
 
 def readback(args):
-    assert(False), 'Not implemented in pyOCD.' # TODO: Implement this in pyOCD.
+    print('Not implemented in nrfjprog when using pyOCD.')
 
 def readregs(args):
     board = _setup()
