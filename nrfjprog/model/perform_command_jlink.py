@@ -26,8 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from intelhex import IntelHex
-import numpy as np
 from pynrfjprog import API
 
 from nrfjprog.model import device
@@ -61,8 +59,6 @@ class SetupCommand(object):
                 pass
             else:
                 assert(False), 'Unknown device family.'
-
-        np.set_printoptions(formatter={'int':hex}, threshold=np.nan) # Output values displayed as hex instead of dec and print the entire array (not a truncated array).
 
     def cleanup(self):
         """
@@ -157,8 +153,8 @@ def ids(args):
 def memrd(args):
     nrf = SetupCommand(args)
 
-    data = np.array(nrf.api.read(args.addr, args.length))
-    _output_data(args.addr, data)
+    data = nrf.api.read(args.addr, args.length)
+    output_data(args.addr, data)
 
     nrf.cleanup()
 
@@ -185,6 +181,7 @@ def pinresetenable(args):
     nrf.cleanup()
 
 def program(args):
+    from intelhex import IntelHex
     nrf = SetupCommand(args)
 
     if args.eraseall:
@@ -207,8 +204,8 @@ def program(args):
         nrf.api.write(start_addr, data.tolist(), True)
 
         if args.verify:
-            read_data = np.array(nrf.api.read(start_addr, len(data)))
-            assert (np.array_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
+            read_data = nrf.api.read(start_addr, len(data))
+            assert (byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
     _reset(nrf, args)
 
@@ -239,15 +236,15 @@ def readtofile(args):
         with open(args.file, 'w') as file:
             if args.readcode or not (args.readuicr or args.readram):
                 file.write('----------Code FLASH----------\n\n')
-                _output_data(nrf.device.flash_start, np.array(nrf.api.read(nrf.device.flash_start, nrf.device.flash_size)), file)
+                output_data(nrf.device.flash_start, nrf.api.read(nrf.device.flash_start, nrf.device.flash_size), file)
                 file.write('\n\n')
             if args.readuicr:
                 file.write('----------UICR----------\n\n')
-                _output_data(nrf.device.uicr_start, np.array(nrf.api.read(nrf.device.uicr_start, nrf.device.page_size)), file)
+                output_data(nrf.device.uicr_start, nrf.api.read(nrf.device.uicr_start, nrf.device.page_size), file)
                 file.write('\n\n')
             if args.readram:
                 file.write('----------RAM----------\n\n')
-                _output_data(nrf.device.ram_start, np.array(nrf.api.read(nrf.device.ram_start, nrf.device.ram_size)), file)
+                output_data(nrf.device.ram_start, nrf.api.read(nrf.device.ram_start, nrf.device.ram_size), file)
     except IOError as error:
         print("{}.".format(error))
 
@@ -284,6 +281,7 @@ def run(args):
     nrf.cleanup()
 
 def verify(args):
+    from intelhex import IntelHex
     nrf = SetupCommand(args)
 
     hex_file = IntelHex(args.file)
@@ -294,7 +292,7 @@ def verify(args):
         data = hex_file.tobinarray(start=start_addr, size=size)
         read_data = nrf.api.read(start_addr, size)
 
-        assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
+        assert (byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
     nrf.cleanup()
 
@@ -328,3 +326,31 @@ def _reset(nrf, args, default_sys_reset=False):
         return
 
     nrf.api.go()
+
+
+# Shared helper functions.
+
+def byte_lists_equal(data, read_data):
+    for i in xrange(len(data)):
+        if data[i] != read_data[i]:
+            return False
+    return True
+
+def is_flash_addr(addr, device):
+    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
+
+def output_data(addr, byte_array, file=None):
+    """
+    Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
+
+    """
+    index = 0
+
+    while index < len(byte_array):
+        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
+        if file:
+            file.write(string + '\n')
+        else:
+            print(string)
+        addr = addr + 4
+        index = index + 4

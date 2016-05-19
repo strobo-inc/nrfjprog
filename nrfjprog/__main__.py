@@ -29,7 +29,7 @@
 """
 This module sets up and runs the command-line-interface for nrfjprog.
 
-It receives the command and options from the user and passes it to model/perform_command.
+It receives the command and options from the user and passes it to model/perform_command.py.
 """
 
 import argparse
@@ -304,7 +304,6 @@ def main():
 
     Above we will define what arguments our program requires and argparse will figure out how to parse those from sys.argv.
     For info on argparse see: https://docs.python.org/3/library/argparse.html.
-
     """
     cli = Nrfjprog()
     cli.run()

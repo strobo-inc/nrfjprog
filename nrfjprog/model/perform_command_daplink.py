@@ -28,8 +28,6 @@
 
 import enum
 from intelhex import IntelHex
-import logging
-import numpy as np
 import os
 from pyOCD.board import MbedBoard
 from pyOCD.target import cortex_m
@@ -154,15 +152,15 @@ def readtofile(args):
         with open(args.file, 'w') as file:
             if args.readcode or not (args.readuicr or args.readram):
                 file.write('----------Code FLASH----------\n\n')
-                perform_command.output_data(nRF5_device.flash_start, np.array(target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size)), file)
+                perform_command.output_data(nRF5_device.flash_start, target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size), file)
                 file.write('\n\n')
             if args.readuicr:
                 file.write('----------UICR----------\n\n')
-                perform_command.output_data(nRF5_device.uicr_start, np.array(target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size)), file)
+                perform_command.output_data(nRF5_device.uicr_start, target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size), file)
                 file.write('\n\n')
             if args.readram:
                 file.write('----------RAM----------\n\n')
-                perform_command.output_data(nRF5_device.ram_start, np.array(target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size)), file)
+                perform_command.output_data(nRF5_device.ram_start, target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size), file)
     except IOError as error:
         pass # TODO: do something...
 
@@ -192,7 +190,35 @@ def verify(args):
         data = hex_file.tobinarray(start=start_addr, size=size)
         read_data = target.readBlockMemoryUnaligned8(start_addr, size)
 
-        assert (np.array_equal(data, np.array(read_data))), 'Verify failed. Data readback from memory does not match data written.'
+        assert (byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
 def version(args):
     print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
+
+
+# Shared helper functions.
+
+def byte_lists_equal(data, read_data):
+    for i in xrange(len(data)):
+        if data[i] != read_data[i]:
+            return False
+    return True
+
+def is_flash_addr(addr, device):
+    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
+
+def output_data(addr, byte_array, file=None):
+    """
+    Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
+
+    """
+    index = 0
+
+    while index < len(byte_array):
+        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
+        if file:
+            file.write(string + '\n')
+        else:
+            print(string)
+        addr = addr + 4
+        index = index + 4
