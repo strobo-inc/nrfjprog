@@ -27,9 +27,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
-This is located outside the nrfjprog package and allows PyInstaller to properly build nrfjprog into an .exe.
+This module is located outside the nrfjprog package and allows PyInstaller to properly build nrfjprog into an .exe by running $ pyinstaller nrfjprog.py --clean
 
-Users can also call this file 'python nrfjprog.py --help' to run nrfjprog as a Python script.
+Users can also call the nrfjprog command-line-tool from Python by running $ python nrfjprog.py --help
 """
 
 from nrfjprog.__main__ import main
