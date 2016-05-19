@@ -35,6 +35,28 @@ from pynrfjprog import API
 from nrfjprog.model import perform_command_jlink
 
 
+# Helpers.
+
+def is_jlink():
+    """
+    Check if the PC is connected to a SEGGER JLink debugger.
+
+    """
+    api = API.API('NRF52')
+
+    try:
+        api.open()
+    except: # TODO: Catch specific exception.
+        return False
+
+    if api.enum_emu_snr(): # BUG: What happens if both a JLink and DAP-Link debugger are both connected to the PC?
+        return_value = True
+    else:
+        return_value = False
+
+    api.close()
+    return return_value
+
 def log(args, msg):
     """
     Controls how info should be displayed to the user.
@@ -44,6 +66,10 @@ def log(args, msg):
         pass
     else:
         print(msg)
+
+
+if not is_jlink():
+    from nrfjprog.model import perform_command_daplink
 
 
 # The callback functions that are called from __main__.py (argparse) based on the command-line input.
@@ -119,27 +145,3 @@ def verify(args):
 def version(args):
     log(args, 'Displaying the nrfjprog and JLinkARM DLL versions.')
     perform_command_jlink.version(args) if is_jlink() else perform_command_daplink.version(args)
-
-
-# Helpers.
-
-def is_jlink():
-    """
-    Check if the PC is connected to a SEGGER JLink debugger.
-
-    """
-    api = API.API('NRF52')
-
-    try:
-        api.open()
-    except: # TODO: Catch specific exception.
-        return False
-
-    if api.enum_emu_snr(): # BUG: What happens if both a JLink and DAP-Link debugger are both connected to the PC?
-        return_value = True
-    else:
-        from nrfjprog.model import perform_command_daplink
-        return_value = False
-
-    api.close()
-    return return_value
