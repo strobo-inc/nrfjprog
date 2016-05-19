@@ -106,14 +106,17 @@ class SetupCommand(object):
         self.api.open()
         self._connect_to_emu()
 
-        try:
-            self.device_version = self.api.read_device_version()
-        except API.APIError as error:
-            if error.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
-                self.cleanup()
-                return False
-            else:
-                assert(False), 'Error!'
+        if not self.args.deviceversion:
+            try:
+                self.device_version = self.api.read_device_version()
+            except API.APIError as error:
+                if error.err_code == API.NrfjprogdllErr.WRONG_FAMILY_FOR_DEVICE:
+                    self.cleanup()
+                    return False
+                else:
+                    assert(False), 'Error!'
+        else:
+            self.device_version = self.args.deviceversion
 
         self.device = device.NRF5xDevice(self.device_version)
         return True

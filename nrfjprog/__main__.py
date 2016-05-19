@@ -70,6 +70,7 @@ class Nrfjprog(object):
 
         if connects:
             self._add_clockspeed_argument(parser)
+            self._add_deviceversion_argument(parser)
             self._add_snr_argument(parser)
 
         parser.set_defaults(func=callback)
@@ -225,6 +226,11 @@ class Nrfjprog(object):
 
     def _add_debugreset_argument(self, parser):
         parser.add_argument('-d', '--debugreset', action='store_true', help='Executes a debug reset.')
+
+    NRF5_DEVICE_VERSIONS = ['NRF52_FP1', 'NRF52_FP1_ENGB', 'NRF52_FP1_ENGA', 'NRF51_XLR3LC', 'NRF51_XLR3P', 'NRF51_L3', 'NRF51_XLR3', 'NRF51_XLR2', 'NRF51_XLR1']
+
+    def _add_deviceversion_argument(self, parser):
+        parser.add_argument('--deviceversion', type=str, help='The version of the target device.', required=False, choices=self.NRF5_DEVICE_VERSIONS)
 
     def _add_eraseall_argument(self, parser):
         parser.add_argument('-e', '--eraseall', action='store_true', help='Erase all user FLASH including UICR.')
