@@ -6,7 +6,7 @@ nrfjprog is a tool to program and debug Nordic Semiconductor's nRF5 series devic
 
 nrfjprog will automatically determine whether the PC is connected to a JLink debugger or a CMSIS-DAP/DAP-Link debugger, and use pynrfjprog or pyOCD accordingly to interface with the target device.
 
-Note, nrfjprog is ~15% faster when running it from a built executable as opposed to from Python.
+Note, nrfjprog is slightly faster when running as a built executable instead of from Python.
 
 # Running the .exe
 1. In Releases, download the correct compressed folder for your operating system and extract it.
@@ -19,15 +19,15 @@ Note, nrfjprog is ~15% faster when running it from a built executable as opposed
 1. Clone or download this repository and navigate to the repo's root directory ~/nrfjprog/.
 2. $ python setup.py install or $ sudo pip install -r requirements.txt
   *  If installing via setup.py, the nrfjprog package will be installed in your system's Python environment.
-3. $ python nrfjprog.py --help
-4. $ python nrfjprog.py program --help
-5. $ python nrfjprog.py program --file PATH_TO_APP.hex --eraseall --verify --systemreset
+3. $ python nrfjprog_cli.py --help
+4. $ python nrfjprog_cli.py program --help
+5. $ python nrfjprog_cli.py program --file PATH_TO_APP.hex --eraseall --verify --systemreset
 
 # Structure
 ```python
 nrfjprog\
   # LICENSE, README.md, setup.py and requirements.txt (used to install this module).
-  nrfjprog.py # Located outside the nrfjprog package so PyInstaller can build into an .exe properly. nrfjprog can be run in python with this file as well.
+  nrfjprog_cli.py # Located outside the nrfjprog package so PyInstaller can build into an .exe properly. nrfjprog can be run in python with this file as well.
   nrfjprog\
     __init__.py # Package marker to make nrfjprog a module.
     __main__.py # This is where the command line interface is implemented. It parses arguments using argparse and fowards them to perform_command.py.
@@ -66,7 +66,7 @@ Currently we bundle into a single package but we can also bundle into a single e
 """
 ```
 1. $ sudo pip install pyinstaller
-2. Navigate to root directory of this repo and run $ pyinstaller nrfjprog.py --clean
+2. Navigate to root directory of this repo and run $ pyinstaller nrfjprog_cli.py --clean --name  nrfjprog
 3. Move the DLL's required by the official nrfjprog.exe into ~/dist/nrfjprog/
 4. Navigate to ~/dist/nrfjprog and run $ nrfjprog.exe --help
 5. Add ~/dist/nrfjprog to your path and call $ nrfjprog -h from any directory.
