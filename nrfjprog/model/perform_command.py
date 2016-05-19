@@ -42,9 +42,8 @@ def is_jlink():
     Check if the PC is connected to a SEGGER JLink debugger.
 
     """
-    api = API.API('NRF52')
-
     try:
+        api = API.API('NRF52') # TODO: Find a better way to do this.
         api.open()
     except: # TODO: Catch specific exception.
         return False
