@@ -30,6 +30,7 @@ from pynrfjprog import API
 
 from nrfjprog.model import device
 from nrfjprog import nrfjprog_version
+from nrfjprog.model.perform_command import PerformCommand
 
 
 class SetupCommand(object):
@@ -122,238 +123,213 @@ class SetupCommand(object):
         return True
 
 
-def erase(args):
-    nrf = SetupCommand(args)
-
-    if args.erasepage:
-        nrf.api.erase_page(args.erasepage)
-    elif args.eraseuicr:
-        nrf.api.erase_uicr()
-    else:
-        nrf.api.erase_all()
-
-    nrf.cleanup()
-
-def halt(args):
-    nrf = SetupCommand(args)
-
-    nrf.api.halt()
-
-    nrf.cleanup()
-
-def ids(args):
-    nrf = SetupCommand(args, do_not_initialize_api=True)
-
-    api = API.API('NRF52') # Device family type arbitrary since we are not connecting to a device. Use NRF52 by default.
-    api.open()
-
-    ids = api.enum_emu_snr()
-    if ids:
-        print(sorted(ids))
-
-    api.close()
-
-def memrd(args):
-    nrf = SetupCommand(args)
-
-    data = nrf.api.read(args.addr, args.length)
-    output_data(args.addr, data)
-
-    nrf.cleanup()
-
-def memwr(args):
-    nrf = SetupCommand(args)
-
-    nrf.api.write_u32(args.addr, args.val, perform_command.is_flash_addr(args.addr, nrf.device))
-
-    nrf.cleanup()
-
-def pinresetenable(args):
-    nrf = SetupCommand(args)
-
-    assert(nrf.device_version[:5] != 'NRF51'), "Enabling pin reset is not a valid command for nRF51 devices."
-
-    uicr_pselreset0_addr = 0x10001200
-    uicr_pselreset1_addr = 0x10001204
-    uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
-
-    nrf.api.write_u32(uicr_pselreset0_addr, uicr_pselreset_21_connect, True)
-    nrf.api.write_u32(uicr_pselreset1_addr, uicr_pselreset_21_connect, True)
-    nrf.api.sys_reset()
-
-    nrf.cleanup()
-
-def program(args):
-    from intelhex import IntelHex
-    nrf = SetupCommand(args)
-
-    if args.eraseall:
-        nrf.api.erase_all()
-    if args.sectorsanduicrerase:
-        nrf.api.erase_uicr()
-
-    hex_file = IntelHex(args.file)
-    for segment in hex_file.segments():
-        start_addr, end_addr = segment
-        size = end_addr - start_addr
-
-        if args.sectorserase or args.sectorsanduicrerase:
-            start_page = int(start_addr / nrf.device.page_size)
-            end_page = int(end_addr / nrf.device.page_size)
-            for page in range(start_page, end_page + 1):
-                nrf.api.erase_page(page * nrf.device.page_size)
-
-        data = hex_file.tobinarray(start=start_addr, size=(size))
-        nrf.api.write(start_addr, data.tolist(), True)
-
-        if args.verify:
-            read_data = nrf.api.read(start_addr, len(data))
-            assert (byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
-
-    _reset(nrf, args)
-
-    nrf.cleanup()
-
-def readback(args):
-    nrf = SetupCommand(args)
-
-    if args.rbplevel == 'CR0':
-        nrf.api.readback_protect(API.ReadbackProtection.REGION_0)
-    else:
-        nrf.api.readback_protect(API.ReadbackProtection.ALL)
-
-    nrf.cleanup()
-
-def readregs(args):
-    nrf = SetupCommand(args)
-
-    for reg in API.CpuRegister:
-        print('{}: {}'.format(reg.name, hex(nrf.api.read_cpu_register(reg))))
-
-    nrf.cleanup()
-
-def readtofile(args):
-    nrf = SetupCommand(args)
-
-    try:
-        with open(args.file, 'w') as file:
-            if args.readcode or not (args.readuicr or args.readram):
-                file.write('----------Code FLASH----------\n\n')
-                output_data(nrf.device.flash_start, nrf.api.read(nrf.device.flash_start, nrf.device.flash_size), file)
-                file.write('\n\n')
-            if args.readuicr:
-                file.write('----------UICR----------\n\n')
-                output_data(nrf.device.uicr_start, nrf.api.read(nrf.device.uicr_start, nrf.device.page_size), file)
-                file.write('\n\n')
-            if args.readram:
-                file.write('----------RAM----------\n\n')
-                output_data(nrf.device.ram_start, nrf.api.read(nrf.device.ram_start, nrf.device.ram_size), file)
-    except IOError as error:
-        print("{}.".format(error))
-
-    nrf.cleanup()
-
-def recover(args):
-    nrf = SetupCommand(args, do_not_initialize_api=True)
-
-    api = API.API(args.family)
-    api.open()
-
-    nrf.connect_to_emu(api)
-    nrf.api.recover()
-
-    nrf.cleanup()
-
-def reset(args):
-    nrf = SetupCommand(args)
-
-    _reset(nrf, args, default_sys_reset=True)
-
-    nrf.cleanup()
-
-def run(args):
-    nrf = SetupCommand(args)
-
-    if args.pc != None and args.sp != None:
-        nrf.api.run(args.pc, args.sp)
-    elif args.pc != None or args.sp != None:
-        assert(False), 'Both the PC and the SP must be specified.'
-    else:
-        nrf.api.go()
-
-    nrf.cleanup()
-
-def verify(args):
-    from intelhex import IntelHex
-    nrf = SetupCommand(args)
-
-    hex_file = IntelHex(args.file)
-    for segment in hex_file.segments():
-        start_addr, end_addr = segment
-        size = end_addr - start_addr
-
-        data = hex_file.tobinarray(start=start_addr, size=size)
-        read_data = nrf.api.read(start_addr, size)
-
-        assert (byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
-
-    nrf.cleanup()
-
-def version(args):
-    nrf = SetupCommand(args, do_not_initialize_api=True)
-
-    api = API.API('NRF52')
-    api.open()
-
-    jlink_arm_dll_version = api.dll_version()
-    print('JLink version: {}'.format(jlink_arm_dll_version))
-    print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
-
-    api.close()
-
-
-# Helper functions.
-
-def _reset(nrf, args, default_sys_reset=False):
+class JLink(PerformCommand):
     """
-    Reset and run the device.
 
     """
-    if args.debugreset:
-        nrf.api.debug_reset()
-    elif args.pinreset:
-        nrf.api.pin_reset()
-    elif args.systemreset or default_sys_reset:
-        nrf.api.sys_reset()
-    else:
-        return
+    def erase(self, args):
+        nrf = SetupCommand(args)
 
-    nrf.api.go()
-
-
-# Shared helper functions.
-
-def byte_lists_equal(data, read_data):
-    for i in xrange(len(data)):
-        if data[i] != read_data[i]:
-            return False
-    return True
-
-def is_flash_addr(addr, device):
-    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
-
-def output_data(addr, byte_array, file=None):
-    """
-    Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
-
-    """
-    index = 0
-
-    while index < len(byte_array):
-        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
-        if file:
-            file.write(string + '\n')
+        if args.erasepage:
+            nrf.api.erase_page(args.erasepage)
+        elif args.eraseuicr:
+            nrf.api.erase_uicr()
         else:
-            print(string)
-        addr = addr + 4
-        index = index + 4
+            nrf.api.erase_all()
+
+        nrf.cleanup()
+
+    def halt(self, args):
+        nrf = SetupCommand(args)
+
+        nrf.api.halt()
+
+        nrf.cleanup()
+
+    def ids(self, args):
+        nrf = SetupCommand(args, do_not_initialize_api=True)
+
+        api = API.API('NRF52') # Device family type arbitrary since we are not connecting to a device. Use NRF52 by default.
+        api.open()
+
+        ids = api.enum_emu_snr()
+        if ids:
+            print(sorted(ids))
+
+        api.close()
+
+    def memrd(self, args):
+        nrf = SetupCommand(args)
+
+        data = nrf.api.read(args.addr, args.length)
+        self.output_data(args.addr, data)
+
+        nrf.cleanup()
+
+    def memwr(self, args):
+        nrf = SetupCommand(args)
+
+        nrf.api.write_u32(args.addr, args.val, self.is_flash_addr(args.addr, nrf.device))
+
+        nrf.cleanup()
+
+    def pinresetenable(self, args):
+        nrf = SetupCommand(args)
+
+        assert(nrf.device_version[:5] != 'NRF51'), "Enabling pin reset is not a valid command for nRF51 devices."
+
+        uicr_pselreset0_addr = 0x10001200
+        uicr_pselreset1_addr = 0x10001204
+        uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
+
+        nrf.api.write_u32(uicr_pselreset0_addr, uicr_pselreset_21_connect, True)
+        nrf.api.write_u32(uicr_pselreset1_addr, uicr_pselreset_21_connect, True)
+        nrf.api.sys_reset()
+
+        nrf.cleanup()
+
+    def program(self, args):
+        from intelhex import IntelHex
+        nrf = SetupCommand(args)
+
+        if args.eraseall:
+            nrf.api.erase_all()
+        if args.sectorsanduicrerase:
+            nrf.api.erase_uicr()
+
+        hex_file = IntelHex(args.file)
+        for segment in hex_file.segments():
+            start_addr, end_addr = segment
+            size = end_addr - start_addr
+
+            if args.sectorserase or args.sectorsanduicrerase:
+                start_page = int(start_addr / nrf.device.page_size)
+                end_page = int(end_addr / nrf.device.page_size)
+                for page in range(start_page, end_page + 1):
+                    nrf.api.erase_page(page * nrf.device.page_size)
+
+            data = hex_file.tobinarray(start=start_addr, size=(size))
+            nrf.api.write(start_addr, data.tolist(), True)
+
+            if args.verify:
+                read_data = nrf.api.read(start_addr, len(data))
+                assert (self.byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
+
+        self._reset(nrf, args)
+
+        nrf.cleanup()
+
+    def rbp(self, args):
+        nrf = SetupCommand(args)
+
+        if args.rbplevel == 'CR0':
+            nrf.api.readback_protect(API.ReadbackProtection.REGION_0)
+        else:
+            nrf.api.readback_protect(API.ReadbackProtection.ALL)
+
+        nrf.cleanup()
+
+    def readregs(self, args):
+        nrf = SetupCommand(args)
+
+        for reg in API.CpuRegister:
+            print('{}: {}'.format(reg.name, hex(nrf.api.read_cpu_register(reg))))
+
+        nrf.cleanup()
+
+    def readtofile(self, args):
+        nrf = SetupCommand(args)
+
+        try:
+            with open(args.file, 'w') as file:
+                if args.readcode or not (args.readuicr or args.readram):
+                    file.write('----------Code FLASH----------\n\n')
+                    self.output_data(nrf.device.flash_start, nrf.api.read(nrf.device.flash_start, nrf.device.flash_size), file)
+                    file.write('\n\n')
+                if args.readuicr:
+                    file.write('----------UICR----------\n\n')
+                    self.output_data(nrf.device.uicr_start, nrf.api.read(nrf.device.uicr_start, nrf.device.page_size), file)
+                    file.write('\n\n')
+                if args.readram:
+                    file.write('----------RAM----------\n\n')
+                    self.output_data(nrf.device.ram_start, nrf.api.read(nrf.device.ram_start, nrf.device.ram_size), file)
+        except IOError as error:
+            print("{}.".format(error))
+
+        nrf.cleanup()
+
+    def recover(self, args):
+        nrf = SetupCommand(args, do_not_initialize_api=True)
+
+        api = API.API(args.family)
+        api.open()
+
+        nrf.connect_to_emu(api)
+        nrf.api.recover()
+
+        nrf.cleanup()
+
+    def reset(self, args):
+        nrf = SetupCommand(args)
+
+        self._reset(nrf, args, default_sys_reset=True)
+
+        nrf.cleanup()
+
+    def run(self, args):
+        nrf = SetupCommand(args)
+
+        if args.pc != None and args.sp != None:
+            nrf.api.run(args.pc, args.sp)
+        elif args.pc != None or args.sp != None:
+            assert(False), 'Both the PC and the SP must be specified.'
+        else:
+            nrf.api.go()
+
+        nrf.cleanup()
+
+    def verify(self, args):
+        from intelhex import IntelHex
+        nrf = SetupCommand(args)
+
+        hex_file = IntelHex(args.file)
+        for segment in hex_file.segments():
+            start_addr, end_addr = segment
+            size = end_addr - start_addr
+
+            data = hex_file.tobinarray(start=start_addr, size=size)
+            read_data = nrf.api.read(start_addr, size)
+
+            assert (self.byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
+
+        nrf.cleanup()
+
+    def version(self, args):
+        nrf = SetupCommand(args, do_not_initialize_api=True)
+
+        api = API.API('NRF52')
+        api.open()
+
+        jlink_arm_dll_version = api.dll_version()
+        print('JLink version: {}'.format(jlink_arm_dll_version))
+        print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
+
+        api.close()
+
+    # Helper functions.
+
+    def _reset(self, nrf, args, default_sys_reset=False):
+        """
+        Reset and run the device.
+
+        """
+        if args.debugreset:
+            nrf.api.debug_reset()
+        elif args.pinreset:
+            nrf.api.pin_reset()
+        elif args.systemreset or default_sys_reset:
+            nrf.api.sys_reset()
+        else:
+            return
+
+        nrf.api.go()
