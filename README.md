@@ -4,9 +4,9 @@
 # nrfjprog
 nrfjprog is a tool to program and debug Nordic Semiconductor's nRF5 series devices. Using a tool such as PyInstaller or py2exe this module can be converted to a stand-alone (cross-platform) executable. The user has the option to run nrfjprog without worrying about a python environment (as an exe), to run nrfjprog from python, or to use this module in their custom scripts as a higher-level alternative/supplement to pynrfjprog/pyOCD.
 
-nrfjprog will automatically determine whether the PC is connected to a JLink debugger or a CMSIS-DAP/DAP-Link debugger, and use pynrfjprog or pyOCD accordingly to interface with the target device.
+nrfjprog will by default assume that the PC is connected to a JLink debugger and use pynrfjprog accordingly. Add the --daplink argument to any command to tell nrfjprog that the PC is connected to a CMSIS-DAP/DAP-Link debugger and to use pyOCD instead of pynrfjprog.
 
-Note, nrfjprog is slightly faster when running as a built executable instead of from Python.
+Note, nrfjprog is slightly faster when running as a built executable instead of as a Python script.
 
 # Running the .exe
 1. In Releases, download the correct compressed folder for your operating system and extract it.
@@ -21,7 +21,7 @@ Note, nrfjprog is slightly faster when running as a built executable instead of 
   *  If installing via setup.py, the nrfjprog package will be installed in your system's Python environment.
 3. $ python nrfjprog_cli.py --help
 4. $ python nrfjprog_cli.py program --help
-5. $ python nrfjprog_cli.py program --file PATH_TO_APP.hex --eraseall --verify --systemreset
+5. $ python nrfjprog_cli.py program --file PATH_TO_APP.hex --eraseall --verify --systemreset (--daplink)
 
 # Structure
 ```python

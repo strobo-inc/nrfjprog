@@ -31,112 +31,47 @@ This module receives user input from __main__.py and performs the operation via 
 
 """
 
-# Helpers.
-
-def lazy_import(use_daplink):
-    if not use_daplink:
-        global perform_command_jlink
-        from nrfjprog.model import perform_command_jlink
-    else:
-        global perform_command_daplink
-        from nrfjprog.model import perform_command_daplink
-
-def log(args, msg):
+class PerformCommand(object):
     """
-    Controls how info should be displayed to the user.
+    Base class.
 
     """
-    if args.quiet:
-        pass
-    else:
-        print(msg)
+    def byte_lists_equal(self, data, read_data):
+        """
 
+        """
+        for i in xrange(len(data)):
+            if data[i] != read_data[i]:
+                return False
+        return True
 
-# The callback functions that are called from __main__.py (argparse) based on the command-line input.
-# All functions follow the same structure: log (exactly what the help menu prints for the command but in different tense), initialize NRF5 device, perform functionality, cleanup.
+    def is_flash_addr(self, addr, device):
+        """
 
-def erase(args):
-    lazy_import(args.daplink)
-    log(args, 'Erasing the device.')
-    perform_command_jlink.erase(args) if not args.daplink else perform_command_daplink.erase(args)
-    log(args, 'Device erased.')
+        """
+        return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
 
-def halt(args):
-    lazy_import(args.daplink)
-    log(args, "Halting the device's CPU.")
-    perform_command_jlink.halt(args) if not args.daplink else perform_command_daplink.halt(args)
-    log(args, "Device's CPU halted.")
+    def log(self, args, msg):
+        """
 
-def ids(args):
-    lazy_import(args.daplink)
-    log(args, 'Displaying the serial numbers of all debuggers connected to the PC.')
-    perform_command_jlink.ids(args) if not args.daplink else perform_command_daplink.ids(args)
+        """
+        if args.quiet:
+            pass
+        else:
+            print(msg)
 
-def memrd(args):
-    lazy_import(args.daplink)
-    log(args, "Reading the device's memory.")
-    perform_command_jlink.memrd(args) if not args.daplink else perform_command_daplink.memrd(args)
+    def output_data(self, addr, byte_array, file=None):
+        """
+        Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
 
-def memwr(args):
-    lazy_import(args.daplink)
-    log(args, "Writing the device's memory.")
-    perform_command_jlink.memwr(args) if not args.daplink else perform_command_daplink.memwr(args)
-    log(args, "Device's memory written.")
+        """
+        index = 0
 
-def pinresetenable(args):
-    lazy_import(args.daplink)
-    log(args, "Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
-    perform_command_jlink.pinresetenable(args) if not args.daplink else perform_command_daplink.pinresetenable(args)
-    log(args, "Pin reset enabled.")
-
-def program(args):
-    lazy_import(args.daplink)
-    log(args, 'Programming the device.')
-    perform_command_jlink.program(args) if not args.daplink else perform_command_daplink.program(args)
-    log(args, 'Device programmed.')
-
-def readback(args):
-    lazy_import(args.daplink)
-    log(args, 'Enabling the readback protection mechanism.')
-    perform_command_jlink.readback(args) if not args.daplink else perform_command_daplink.readback(args)
-    log(args, 'Readback protection mechanism enabled.')
-
-def readregs(args):
-    lazy_import(args.daplink)
-    log(args, 'Reading the CPU registers.')
-    perform_command_jlink.readregs(args) if not args.daplink else perform_command_daplink.readregs(args)
-
-def readtofile(args):
-    lazy_import(args.daplink)
-    log(args, "Reading and storing the device's memory.")
-    perform_command_jlink.readtofile(args) if not args.daplink else perform_command_daplink.readtofile(args)
-    log(args, "Device's memory read and stored")
-
-def recover(args):
-    lazy_import(args.daplink)
-    log(args, "Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
-    perform_command_jlink.recover(args) if not args.daplink else perform_command_daplink.recover(args)
-    log(args, "Device recovered.")
-
-def reset(args):
-    lazy_import(args.daplink)
-    log(args, 'Resetting the device.')
-    perform_command_jlink.reset(args) if not args.daplink else perform_command_daplink.reset(args)
-    log(args, 'Device reset.')
-
-def run(args):
-    lazy_import(args.daplink)
-    log(args, "Running the device's CPU.")
-    perform_command_jlink.run(args) if not args.daplink else perform_command_daplink.run(args)
-    log(args, "Device's CPU running.")
-
-def verify(args):
-    lazy_import(args.daplink)
-    log(args, "Verifying that the device's memory contains the correct data.")
-    perform_command_jlink.verify(args) if not args.daplink else perform_command_daplink.verify(args)
-    log(args, "Device's memory contains the correct data.")
-
-def version(args):
-    lazy_import(args.daplink)
-    log(args, 'Displaying the nrfjprog and JLinkARM DLL versions.')
-    perform_command_jlink.version(args) if not args.daplink else perform_command_daplink.version(args)
+        while index < len(byte_array):
+            string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
+            if file:
+                file.write(string + '\n')
+            else:
+                print(string)
+            addr = addr + 4
+            index = index + 4

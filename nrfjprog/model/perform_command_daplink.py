@@ -32,8 +32,9 @@ import os
 from pyOCD.board import MbedBoard
 from pyOCD.target import cortex_m
 
-from nrfjprog.model import device
 from nrfjprog import nrfjprog_version
+from nrfjprog.model import device
+from nrfjprog.model.perform_command import PerformCommand
 
 
 @enum.unique
@@ -43,185 +44,158 @@ class Memory_Access_Mode(enum.IntEnum):
     ERASE_ENABLE = 2
 
 
-# Helpers.
-
-def _config_NVMC(target, access_mode):
+class DapLink(PerformCommand):
     """
-    Configure the NVMC to read, write, or erase FLASH.
 
     """
-    NVMC_CONFIG_ADDR = 0x4001E504
-    target.write32(NVMC_CONFIG_ADDR, access_mode)
+    def erase(self, args):
+        board = self._setup()
+        board.flash.init()
 
-def _erase_uicr(target):
-    _config_NVMC(target, Memory_Access_Mode.ERASE_ENABLE)
-    target.write32(NVMC_ERASEUICR_ADDR, 1)
-    _config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
+        NVMC_ERASEUICR_ADDR = 0x4001E514
 
-def _setup():
-    board = MbedBoard.chooseBoard()
-    return board
+        if args.erasepage:
+            board.flash.erasePage(args.erasepage)
+        elif args.eraseuicr:
+            self._erase_uicr(board.target)
+        else:
+            board.flash.eraseAll()
 
+    def halt(self, args):
+        board = self._setup()
+        board.target.halt()
 
-# Commands.
+    def ids(self, args):
+        MbedBoard.listConnectedBoards()
 
-def erase(args):
-    board = _setup()
-    board.flash.init()
+    def memrd(self, args):
+        board = self._setup()
+        data = board.target.readBlockMemoryUnaligned8(args.addr, args.length)
+        self.output_data(args.addr, data)
 
-    NVMC_ERASEUICR_ADDR = 0x4001E514
+    def memwr(self, args):
+        board = self._setup()
 
-    if args.erasepage:
-        board.flash.erasePage(args.erasepage)
-    elif args.eraseuicr:
-        _erase_uicr(board.target)
-    else:
-        board.flash.eraseAll()
+        nRF5_device = device.NRF5xDevice('NRF52_FP1') # TODO: This should not be hard-coded.
 
-def halt(args):
-    board = _setup()
-    board.target.halt()
+        if self.is_flash_addr(args.addr, nRF5_device):
+            self._config_NVMC(board.target, Memory_Access_Mode.WRITE_ENABLE)
+            board.target.write32(args.addr, args.val)
+            self._config_NVMC(board.target, Memory_Access_Mode.READ_ENABLE)
+        else:
+            board.target.write32(args.addr, args.val)
 
-def ids(args):
-    MbedBoard.listConnectedBoards()
+    def pinresetenable(self, args):
+        board = self._setup()
+        assert(board.getTargetType() is 'nrf52')
 
-def memrd(args):
-    board = _setup()
-    data = board.target.readBlockMemoryUnaligned8(args.addr, args.length)
-    perform_command.output_data(args.addr, data)
+        self._config_NVMC(board.target, Memory_Access_Mode.WRITE_ENABLE)
 
-def memwr(args):
-    board = _setup()
+        uicr_pselreset0_addr = 0x10001200
+        uicr_pselreset1_addr = 0x10001204
+        uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
 
-    nRF5_device = device.NRF5xDevice('NRF52_FP1') # TODO: This should not be hard-coded.
+        board.target.write32(uicr_pselreset0_addr, uicr_pselreset_21_connect)
+        board.target.write32(uicr_pselreset1_addr, uicr_pselreset_21_connect)
 
-    if perform_command.is_flash_addr(args.addr, nRF5_device):
-        _config_NVMC(board.target, Memory_Access_Mode.WRITE_ENABLE)
-        board.target.write32(args.addr, args.val)
-        _config_NVMC(board.target, Memory_Access_Mode.READ_ENABLE)
-    else:
-        board.target.write32(args.addr, args.val)
+        self._config_NVMC(board.target, Memory_Access_Mode.READ_ENABLE)
 
-def pinresetenable(args):
-    board = _setup()
-    assert(board.getTargetType() is 'nrf52')
-
-    _config_NVMC(board.target, Memory_Access_Mode.WRITE_ENABLE)
-
-    uicr_pselreset0_addr = 0x10001200
-    uicr_pselreset1_addr = 0x10001204
-    uicr_pselreset_21_connect = 0x15 # Writes the CONNECT and PIN bit fields (reset is connected and GPIO pin 21 is selected as the reset pin).
-
-    board.target.write32(uicr_pselreset0_addr, uicr_pselreset_21_connect)
-    board.target.write32(uicr_pselreset1_addr, uicr_pselreset_21_connect)
-
-    _config_NVMC(board.target, Memory_Access_Mode.READ_ENABLE)
-
-    board.target.reset()
-
-def program(args):
-    board = _setup()
-    board.flash.init()
-
-    tmp_bin_file = 'tmp.bin'
-
-    if args.sectorsanduicrerase:
-        _erase_uicr(board.target) # TODO: May not be needed if pyOCD does this. Double check before removing.
-
-    hex_file = IntelHex(args.file)
-    hex_file.tobinfile(tmp_bin_file)
-    board.flash.flashBinary(tmp_bin_file, chip_erase=args.eraseall, fast_verify=args.verify)
-
-    if args.debugreset or args.pinreset or args.systemreset:
         board.target.reset()
 
-    os.remove(tmp_bin_file)
+    def program(self, args):
+        board = self._setup()
+        board.flash.init()
 
-def readback(args):
-    print('Not implemented in nrfjprog when using pyOCD.')
+        tmp_bin_file = 'tmp.bin'
 
-def readregs(args):
-    board = _setup()
+        if args.sectorsanduicrerase:
+            self._erase_uicr(board.target) # TODO: May not be needed if pyOCD does this. Double check before removing.
 
-    for reg in cortex_m.CORE_REGISTER:
-        if cortex_m.CORE_REGISTER[reg] in range(0, 16):
-            print(board.target.readCoreRegister(reg))
+        hex_file = IntelHex(args.file)
+        hex_file.tobinfile(tmp_bin_file)
+        board.flash.flashBinary(tmp_bin_file, chip_erase=args.eraseall, fast_verify=args.verify)
 
-def readtofile(args):
-    board = _setup()
-    nRF5_device = device.NRF5xDevice('NRF52_FP1') # TODO: This should not be hard-coded.
+        if args.debugreset or args.pinreset or args.systemreset:
+            board.target.reset()
 
-    try:
-        with open(args.file, 'w') as file:
-            if args.readcode or not (args.readuicr or args.readram):
-                file.write('----------Code FLASH----------\n\n')
-                perform_command.output_data(nRF5_device.flash_start, board.target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size), file)
-                file.write('\n\n')
-            if args.readuicr:
-                file.write('----------UICR----------\n\n')
-                perform_command.output_data(nRF5_device.uicr_start, board.target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size), file)
-                file.write('\n\n')
-            if args.readram:
-                file.write('----------RAM----------\n\n')
-                perform_command.output_data(nRF5_device.ram_start, board.target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size), file)
-    except IOError as error:
-        pass # TODO: do something...
+        os.remove(tmp_bin_file)
 
-def recover(args):
-    print('WARNING: This will not actually unlock the chip right now, just does a full erase.')
-    board = _setup()
+    def rbp(self, args):
+        print('Not implemented in nrfjprog when using pyOCD.')
 
-    board.flash.init()
-    board.flash.eraseAll()
+    def readregs(self, args):
+        board = self._setup()
 
-def reset(args):
-    board = _setup()
-    board.target.reset()
+        for reg in cortex_m.CORE_REGISTER:
+            if cortex_m.CORE_REGISTER[reg] in range(0, 16):
+                print(board.target.readCoreRegister(reg))
 
-def run(args):
-    board = _setup()
-    board.target.resume()
+    def readtofile(self, args):
+        board = self._setup()
+        nRF5_device = device.NRF5xDevice('NRF52_FP1') # TODO: This should not be hard-coded.
 
-def verify(args):
-    board = _setup()
+        try:
+            with open(args.file, 'w') as file:
+                if args.readcode or not (args.readuicr or args.readram):
+                    file.write('----------Code FLASH----------\n\n')
+                    self.output_data(nRF5_device.flash_start, board.target.readBlockMemoryAligned32(nRF5_device.flash_start, nRF5_device.flash_size), file)
+                    file.write('\n\n')
+                if args.readuicr:
+                    file.write('----------UICR----------\n\n')
+                    self.output_data(nRF5_device.uicr_start, board.target.readBlockMemoryAligned32(nRF5_device.uicr_start, nRF5_device.page_size), file)
+                    file.write('\n\n')
+                if args.readram:
+                    file.write('----------RAM----------\n\n')
+                    self.output_data(nRF5_device.ram_start, board.target.readBlockMemoryAligned32(nRF5_device.ram_start, nRF5_device.ram_size), file)
+        except IOError as error:
+            pass # TODO: do something...
 
-    hex_file = IntelHex(args.file)
-    for segment in hex_file.segments():
-        start_addr, end_addr = segment
-        size = end_addr - start_addr
+    def recover(self, args):
+        print('WARNING: This will not actually unlock the chip right now, just does a full erase.')
+        board = self._setup()
 
-        data = hex_file.tobinarray(start=start_addr, size=size)
-        read_data = board.target.readBlockMemoryUnaligned8(start_addr, size)
+        board.flash.init()
+        board.flash.eraseAll()
 
-        assert (byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
+    def reset(self, args):
+        board = self._setup()
+        board.target.reset()
 
-def version(args):
-    print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
+    def run(self, args):
+        board = self._setup()
+        board.target.resume()
 
+    def verify(self, args):
+        board = self._setup()
 
-# Shared helper functions.
+        hex_file = IntelHex(args.file)
+        for segment in hex_file.segments():
+            start_addr, end_addr = segment
+            size = end_addr - start_addr
 
-def byte_lists_equal(data, read_data):
-    for i in xrange(len(data)):
-        if data[i] != read_data[i]:
-            return False
-    return True
+            data = hex_file.tobinarray(start=start_addr, size=size)
+            read_data = board.target.readBlockMemoryUnaligned8(start_addr, size)
 
-def is_flash_addr(addr, device):
-    return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
+            assert (self.byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
-def output_data(addr, byte_array, file=None):
-    """
-    Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
+    def version(self, args):
+        print('nRFjprog version: {}'.format(nrfjprog_version.NRFJPROG_VERSION))
 
-    """
-    index = 0
+    # Helpers.
 
-    while index < len(byte_array):
-        string = "{}: {}".format(hex(addr), byte_array[index : index + 4])
-        if file:
-            file.write(string + '\n')
-        else:
-            print(string)
-        addr = addr + 4
-        index = index + 4
+    def _config_NVMC(self, target, access_mode):
+        """
+        Configure the NVMC to read, write, or erase FLASH.
+
+        """
+        NVMC_CONFIG_ADDR = 0x4001E504
+        target.write32(NVMC_CONFIG_ADDR, access_mode)
+
+    def _erase_uicr(self, target):
+        self._config_NVMC(target, Memory_Access_Mode.ERASE_ENABLE)
+        target.write32(NVMC_ERASEUICR_ADDR, 1)
+        self._config_NVMC(target, Memory_Access_Mode.READ_ENABLE)
+
+    def _setup(self):
+        board = MbedBoard.chooseBoard()
+        return board
