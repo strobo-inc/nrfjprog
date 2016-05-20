@@ -44,6 +44,24 @@ class Nrfjprog(object):
     nrfjprog_description = "nrfjprog is a command line tool used for programming nRF5x devices. It is implemented in Python and utilizes pynrfjprog, a Python wrapper for the nrfjprog DLL. Both nrfjprog and pynrfjprog are open source and can be found on Nordic's GitHub. To report an issue, request a feature, or contribute please see: https://github.com/mjdietzx/nrfjprog."
     nrfjprog_epilog = "Just like any standard command line tool, one positional command can be specified, followed by it's specific arguments. To see arguments for a specific command type: python nrfjprog COMMAND -h (i.e. python nrfjprog erase -h)."
 
+    help_messages = {
+        'erase' : "Erases the device's FLASH.",
+        'halt' : "Halts the device's CPU.",
+        'ids' : 'Displays the serial numbers of all debuggers connected to the PC.',
+        'memrd' : "Reads the device's memory.",
+        'memwr' : "Writes one word in the device's memory.",
+        'pinresetenable' : "Enable the pin reset (GPIO 21) on nRF52 devices. Invalid command on nRF51 devices.",
+        'program' : 'Programs the device.',
+        'rbp' : 'Enables the readback protection mechanism.',
+        'readregs' : 'Reads the CPU registers.',
+        'readtofile' : "Reads and stores the device's memory.",
+        'recover' : 'Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.',
+        'reset' : 'Resets the device.',
+        'run' : "Runs the device's CPU.",
+        'verify' : "Verifies that the device's memory contains the correct data.",
+        'version' : 'Display the nrfjprog and JLinkARM DLL versions.'
+    }
+
     def __init__(self):
         """
         Initializes the command-line interface.
@@ -87,7 +105,10 @@ class Nrfjprog(object):
         def function_not_found():
             assert(False), "Function not found!"
 
+        log = getattr(perform_command, 'log', function_not_found)
         func = getattr(perform_command, self.args.command, function_not_found)
+
+        log(self.args, self.help_messages[self.args.command])
         func(self.args)
 
     def _add_commands(self):
@@ -115,39 +136,39 @@ class Nrfjprog(object):
     # The top-level positional commands of our command-line interface.
 
     def _add_erase_command(self):
-        erase_parser = self.subparsers.add_parser('erase', help="Erases the device's FLASH.")
+        erase_parser = self.subparsers.add_parser('erase', help=self.help_messages['erase'])
         self.add_common_properties_to_command(erase_parser)
 
         self._add_erase_group(erase_parser)
 
     def _add_halt_command(self):
-        halt_parser = self.subparsers.add_parser('halt', help="Halts the device's CPU.")
+        halt_parser = self.subparsers.add_parser('halt', help=self.help_messages['halt'])
         self.add_common_properties_to_command(halt_parser)
 
     def _add_ids_command(self):
-        ids_parser = self.subparsers.add_parser('ids', help='Displays the serial numbers of all debuggers connected to the PC.')
+        ids_parser = self.subparsers.add_parser('ids', help=self.help_messages['ids'])
         self.add_common_properties_to_command(ids_parser, connects=False)
 
     def _add_memrd_command(self):
-        memrd_parser = self.subparsers.add_parser('memrd', help="Reads the device's memory.")
+        memrd_parser = self.subparsers.add_parser('memrd', help=self.help_messages['memrd'])
         self.add_common_properties_to_command(memrd_parser)
 
         self._add_addr_argument(memrd_parser)
         self._add_length_argument(memrd_parser)
 
     def _add_memwr_command(self):
-        memwr_parser = self.subparsers.add_parser('memwr', help="Writes one word in the device's memory.")
+        memwr_parser = self.subparsers.add_parser('memwr', help=self.help_messages['memwr'])
         self.add_common_properties_to_command(memwr_parser)
 
         self._add_addr_argument(memwr_parser)
         self._add_val_argument(memwr_parser)
 
     def _add_pinresetenable_command(self):
-        pinresetenable_parser = self.subparsers.add_parser('pinresetenable', help="Enable the pin reset (GPIO 21) on nRF52 devices. Invalid command on nRF51 devices.")
+        pinresetenable_parser = self.subparsers.add_parser('pinresetenable', help=self.help_messages['pinresetenable'])
         self.add_common_properties_to_command(pinresetenable_parser)
 
     def _add_program_command(self):
-        program_parser = self.subparsers.add_parser('program', help='Programs the device.')
+        program_parser = self.subparsers.add_parser('program', help=self.help_messages['program'])
         self.add_common_properties_to_command(program_parser)
 
         self._add_file_argument(program_parser)
@@ -156,17 +177,17 @@ class Nrfjprog(object):
         self._add_reset_group(program_parser)
 
     def _add_readback_command(self):
-        readback_parser = self.subparsers.add_parser('rbp', help='Enables the readback protection mechanism.')
+        readback_parser = self.subparsers.add_parser('rbp', help=self.help_messages['rbp'])
         self.add_common_properties_to_command(readback_parser)
 
         self._add_rbplevel_argument(readback_parser)
 
     def _add_readregs_command(self):
-        readregs_parser = self.subparsers.add_parser('readregs', help='Reads the CPU registers.')
+        readregs_parser = self.subparsers.add_parser('readregs', help=self.help_messages['readregs'])
         self.add_common_properties_to_command(readregs_parser)
 
     def _add_readtofile_command(self):
-        readtofile_parser = self.subparsers.add_parser('readtofile', help="Reads and stores the device's memory.")
+        readtofile_parser = self.subparsers.add_parser('readtofile', help=self.help_messages['readtofile'])
         self.add_common_properties_to_command(readtofile_parser)
 
         self._add_file_argument(readtofile_parser)
@@ -175,32 +196,32 @@ class Nrfjprog(object):
         self._add_readuicr_argument(readtofile_parser)
 
     def _add_recover_command(self):
-        recover_parser = self.subparsers.add_parser('recover', help='Erases all user FLASH and RAM and disables any readback protection mechanisms that are enabled.')
+        recover_parser = self.subparsers.add_parser('recover', help=self.help_messages['recover'])
         self.add_common_properties_to_command(recover_parser)
 
         self._add_family_argument(recover_parser)
 
     def _add_reset_command(self):
-        reset_parser = self.subparsers.add_parser('reset', help='Resets the device.')
+        reset_parser = self.subparsers.add_parser('reset', help=self.help_messages['reset'])
         self.add_common_properties_to_command(reset_parser)
 
         self._add_reset_group(reset_parser)
 
     def _add_run_command(self):
-        run_parser = self.subparsers.add_parser('run', help="Runs the device's CPU.")
+        run_parser = self.subparsers.add_parser('run', help=self.help_messages['run'])
         self.add_common_properties_to_command(run_parser)
 
         self._add_pc_argument(run_parser)
         self._add_sp_argument(run_parser)
 
     def _add_verify_command(self):
-        verify_parser = self.subparsers.add_parser('verify', help="Verifies that the device's memory contains the correct data.")
+        verify_parser = self.subparsers.add_parser('verify', help=self.help_messages['verify'])
         self.add_common_properties_to_command(verify_parser)
 
         self._add_file_argument(verify_parser)
 
     def _add_version_command(self):
-        version_parser = self.subparsers.add_parser('version', help='Display the nrfjprog and JLinkARM DLL versions.')
+        version_parser = self.subparsers.add_parser('version', help=self.help_messages['version'])
         self.add_common_properties_to_command(version_parser, connects=False)
 
     # Mutually exclusive groups. argparse will make sure only one of the arguments in a mutually exclusive group was present on the command-line.

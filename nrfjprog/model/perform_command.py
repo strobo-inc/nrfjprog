@@ -51,6 +51,15 @@ class PerformCommand(object):
         """
         return addr in range(device.flash_start, device.flash_end) or addr in range(device.uicr_start, device.uicr_end)
 
+    def log(self, args, msg):
+        """
+
+        """
+        if args.quiet:
+            pass
+        else:
+            print(msg)
+
     def output_data(self, addr, byte_array, file=None):
         """
         Read data from memory and output it to the console or file with the following format: ADDRESS: WORD\n
