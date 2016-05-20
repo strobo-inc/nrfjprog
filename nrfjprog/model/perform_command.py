@@ -30,45 +30,25 @@
 This module receives user input from __main__.py and performs the operation via JLink (pynrfjprog) or DAP-Link/CMSIS-DAP (pyOCD).
 
 """
-from pynrfjprog import API
-
-from nrfjprog.model import perform_command_jlink
-
 
 # Helpers.
-
-def is_jlink():
-    """
-    Check if the PC is connected to a SEGGER JLink debugger.
-
-    """
-    try:
-        api = API.API('NRF52') # TODO: Find a better way to do this.
-        api.open()
-    except: # TODO: Catch specific exception.
-        return False
-
-    if api.enum_emu_snr(): # BUG: What happens if both a JLink and DAP-Link debugger are both connected to the PC?
-        return_value = True
-    else:
-        return_value = False
-
-    api.close()
-    return return_value
 
 def log(args, msg):
     """
     Controls how info should be displayed to the user.
 
     """
+    if args.daplink and not 'perform_command_daplink' in globals():
+        global perform_command_daplink
+        from nrfjprog.model import perform_command_daplink
+    elif not 'perform_command_jlink' in globals():
+        global perform_command_jlink
+        from nrfjprog.model import perform_command_jlink
+
     if args.quiet:
         pass
     else:
         print(msg)
-
-
-if not is_jlink():
-    from nrfjprog.model import perform_command_daplink
 
 
 # The callback functions that are called from __main__.py (argparse) based on the command-line input.
@@ -76,71 +56,73 @@ if not is_jlink():
 
 def erase(args):
     log(args, 'Erasing the device.')
-    perform_command_jlink.erase(args) if is_jlink() else perform_command_daplink.erase(args)
+
+    perform_command_jlink.erase(args) if not args.daplink else perform_command_daplink.erase(args)
+
     log(args, 'Device erased.')
 
 def halt(args):
     log(args, "Halting the device's CPU.")
-    perform_command_jlink.halt(args) if is_jlink() else perform_command_daplink.halt(args)
+    perform_command_jlink.halt(args) if not args.daplink else perform_command_daplink.halt(args)
     log(args, "Device's CPU halted.")
 
 def ids(args):
     log(args, 'Displaying the serial numbers of all debuggers connected to the PC.')
-    perform_command_jlink.ids(args) if is_jlink() else perform_command_daplink.ids(args)
+    perform_command_jlink.ids(args) if not args.daplink else perform_command_daplink.ids(args)
 
 def memrd(args):
     log(args, "Reading the device's memory.")
-    perform_command_jlink.memrd(args) if is_jlink() else perform_command_daplink.memrd(args)
+    perform_command_jlink.memrd(args) if not args.daplink else perform_command_daplink.memrd(args)
 
 def memwr(args):
     log(args, "Writing the device's memory.")
-    perform_command_jlink.memwr(args) if is_jlink() else perform_command_daplink.memwr(args)
+    perform_command_jlink.memwr(args) if not args.daplink else perform_command_daplink.memwr(args)
     log(args, "Device's memory written.")
 
 def pinresetenable(args):
     log(args, "Enabling the pin reset on nRF52 devices. Invalid command on nRF51 devices.")
-    perform_command_jlink.pinresetenable(args) if is_jlink() else perform_command_daplink.pinresetenable(args)
+    perform_command_jlink.pinresetenable(args) if not args.daplink else perform_command_daplink.pinresetenable(args)
     log(args, "Pin reset enabled.")
 
 def program(args):
     log(args, 'Programming the device.')
-    perform_command_jlink.program(args) if is_jlink() else perform_command_daplink.program(args)
+    perform_command_jlink.program(args) if not args.daplink else perform_command_daplink.program(args)
     log(args, 'Device programmed.')
 
 def readback(args):
     log(args, 'Enabling the readback protection mechanism.')
-    perform_command_jlink.readback(args) if is_jlink() else perform_command_daplink.readback(args)
+    perform_command_jlink.readback(args) if not args.daplink else perform_command_daplink.readback(args)
     log(args, 'Readback protection mechanism enabled.')
 
 def readregs(args):
     log(args, 'Reading the CPU registers.')
-    perform_command_jlink.readregs(args) if is_jlink() else perform_command_daplink.readregs(args)
+    perform_command_jlink.readregs(args) if not args.daplink else perform_command_daplink.readregs(args)
 
 def readtofile(args):
     log(args, "Reading and storing the device's memory.")
-    perform_command_jlink.readtofile(args) if is_jlink() else perform_command_daplink.readtofile(args)
+    perform_command_jlink.readtofile(args) if not args.daplink else perform_command_daplink.readtofile(args)
     log(args, "Device's memory read and stored")
 
 def recover(args):
     log(args, "Erasing all user FLASH and RAM and disabling any readback protection mechanisms that are enabled.")
-    perform_command_jlink.recover(args) if is_jlink() else perform_command_daplink.recover(args)
+    perform_command_jlink.recover(args) if not args.daplink else perform_command_daplink.recover(args)
     log(args, "Device recovered.")
 
 def reset(args):
     log(args, 'Resetting the device.')
-    perform_command_jlink.reset(args) if is_jlink() else perform_command_daplink.reset(args)
+    perform_command_jlink.reset(args) if not args.daplink else perform_command_daplink.reset(args)
     log(args, 'Device reset.')
 
 def run(args):
     log(args, "Running the device's CPU.")
-    perform_command_jlink.run(args) if is_jlink() else perform_command_daplink.run(args)
+    perform_command_jlink.run(args) if not args.daplink else perform_command_daplink.run(args)
     log(args, "Device's CPU running.")
 
 def verify(args):
     log(args, "Verifying that the device's memory contains the correct data.")
-    perform_command_jlink.verify(args) if is_jlink() else perform_command_daplink.verify(args)
+    perform_command_jlink.verify(args) if not args.daplink else perform_command_daplink.verify(args)
     log(args, "Device's memory contains the correct data.")
 
 def version(args):
     log(args, 'Displaying the nrfjprog and JLinkARM DLL versions.')
-    perform_command_jlink.version(args) if is_jlink() else perform_command_daplink.version(args)
+    perform_command_jlink.version(args) if not args.daplink else perform_command_daplink.version(args)

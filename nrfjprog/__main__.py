@@ -66,6 +66,7 @@ class Nrfjprog(object):
         @param func           callback: Function that performs operation for given command.
         @param boolean        connects: If this command connects to the emulator (debugger) and should have the option to set the clock speed/serial number.
         """
+        self._add_daplink_argument(parser)
         self._add_quiet_argument(parser)
 
         if connects:
@@ -223,6 +224,9 @@ class Nrfjprog(object):
 
     def _add_clockspeed_argument(self, parser):
         parser.add_argument('-c', '--clockspeed', type=int, metavar='CLOCKSPEEDKHZ', help='Sets the debugger SWD clock speed in kHz for the operation.')
+
+    def _add_daplink_argument(self, parser):
+        parser.add_argument('--daplink', action='store_true', help='PC is connected to a CMSIS-DAP/DAP-Link debugger.')
 
     def _add_debugreset_argument(self, parser):
         parser.add_argument('-d', '--debugreset', action='store_true', help='Executes a debug reset.')
