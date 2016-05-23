@@ -189,31 +189,45 @@ class JLink(PerformCommand):
         nrf.cleanup()
 
     def program(self, args):
-        from intelhex import IntelHex
         nrf = SetupCommand(args)
 
         if args.eraseall:
             nrf.api.erase_all()
-        if args.sectorsanduicrerase:
-            nrf.api.erase_uicr()
 
-        hex_file = IntelHex(args.file)
-        for segment in hex_file.segments():
-            start_addr, end_addr = segment
-            size = end_addr - start_addr
+        if args.fast:
+            import subprocess
+            script_file = open('tmp.jlink', 'w')
+            loadfile = 'loadfile ' + args.file
+            commands = [loadfile, 'q']
+            commands = '\n'.join(commands)
+            script_file.write(commands)
+            script_file.close()
 
-            if args.sectorserase or args.sectorsanduicrerase:
-                start_page = int(start_addr / nrf.device.page_size)
-                end_page = int(end_addr / nrf.device.page_size)
-                for page in range(start_page, end_page + 1):
-                    nrf.api.erase_page(page * nrf.device.page_size)
+            subprocess.check_call(['JLink', '-device', 'NRF52832_XXAA', '-if', 'swd', '-speed', '20000', '-CommanderScript', script_file.name], stdin=None, stdout=None, stderr=None, shell=False)
 
-            data = hex_file.tobinarray(start=start_addr, size=(size))
-            nrf.api.write(start_addr, data.tolist(), True)
+        else:
+            from intelhex import IntelHex
 
-            if args.verify:
-                read_data = nrf.api.read(start_addr, len(data))
-                assert (self.byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
+            if args.sectorsanduicrerase:
+                nrf.api.erase_uicr()
+
+            hex_file = IntelHex(args.file)
+            for segment in hex_file.segments():
+                start_addr, end_addr = segment
+                size = end_addr - start_addr
+
+                if args.sectorserase or args.sectorsanduicrerase:
+                    start_page = int(start_addr / nrf.device.page_size)
+                    end_page = int(end_addr / nrf.device.page_size)
+                    for page in range(start_page, end_page + 1):
+                        nrf.api.erase_page(page * nrf.device.page_size)
+
+                data = hex_file.tobinarray(start=start_addr, size=(size))
+                nrf.api.write(start_addr, data.tolist(), True)
+
+                if args.verify:
+                    read_data = nrf.api.read(start_addr, len(data))
+                    assert (self.byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
         self._reset(nrf, args)
 

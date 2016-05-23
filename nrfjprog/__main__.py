@@ -171,6 +171,7 @@ class Nrfjprog(object):
         program_parser = self.subparsers.add_parser('program', help=self.help_messages['program'])
         self.add_common_properties_to_command(program_parser)
 
+        self._add_fast_argument(program_parser)
         self._add_file_argument(program_parser)
         self._add_erase_before_flash_group(program_parser)
         self._add_verify_argument(program_parser)
@@ -274,6 +275,9 @@ class Nrfjprog(object):
 
     def _add_family_argument(self, parser):
         parser.add_argument('--family', type=str, help='The family of the target device.', required=True, choices=['NRF51', 'NRF52'])
+
+    def _add_fast_argument(self, parser):
+        parser.add_argument('--fast', action='store_true', help='Use JLink Commander directly for fastest execution.')
 
     def _add_file_argument(self, parser):
         parser.add_argument('-f', '--file', help='The hex file to be used in this operation.', required=True)
