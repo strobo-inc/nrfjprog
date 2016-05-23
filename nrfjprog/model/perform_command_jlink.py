@@ -189,17 +189,21 @@ class JLink(PerformCommand):
         nrf.cleanup()
 
     def program(self, args):
-        nrf = SetupCommand(args)
-
-        if args.eraseall:
-            nrf.api.erase_all()
 
         if args.fast:
             import subprocess
-            script_file = open('tmp.jlink', 'w')
+
+            commands = []
+            if args.eraseall:
+                commands.append('erase')
             loadfile = 'loadfile ' + args.file
-            commands = [loadfile, 'q']
+            commands.append(loadfile)
+            if args.systemreset:
+                commands.append('r')
+            commands.append('q')
             commands = '\n'.join(commands)
+
+            script_file = open('tmp.jlink', 'w')
             script_file.write(commands)
             script_file.close()
 
@@ -207,6 +211,11 @@ class JLink(PerformCommand):
 
         else:
             from intelhex import IntelHex
+
+            nrf = SetupCommand(args)
+
+            if args.eraseall:
+                nrf.api.erase_all()
 
             if args.sectorsanduicrerase:
                 nrf.api.erase_uicr()
@@ -229,9 +238,9 @@ class JLink(PerformCommand):
                     read_data = nrf.api.read(start_addr, len(data))
                     assert (self.byte_lists_equal(data, read_data)), 'Verify failed. Data readback from memory does not match data written.'
 
-        self._reset(nrf, args)
+            self._reset(nrf, args)
 
-        nrf.cleanup()
+            nrf.cleanup()
 
     def rbp(self, args):
         nrf = SetupCommand(args)
