@@ -40,7 +40,7 @@ class PerformCommand(object):
         """
 
         """
-        for i in xrange(len(data)):
+        for i in range(len(data)):
             if data[i] != read_data[i]:
                 return False
         return True
