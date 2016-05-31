@@ -81,6 +81,7 @@ class Nrfjprog(object):
         @param boolean        connects: If this command connects to the emulator (debugger) and should have the option to set the clock speed/serial number.
         """
         self._add_daplink_argument(parser)
+        self._add_openocd_argument(parser)
         self._add_quiet_argument(parser)
 
         if connects:
@@ -98,6 +99,9 @@ class Nrfjprog(object):
         if self.args.daplink:
             from .model.perform_command_daplink import DapLink
             perform_command = DapLink()
+        elif self.args.openocd:
+            from .model.perform_command_openocd import OpenOCD
+            perform_command = OpenOCD()
         else:
             from .model.perform_command_jlink import JLink
             perform_command = JLink()
@@ -280,6 +284,9 @@ class Nrfjprog(object):
 
     def _add_length_argument(self, parser):
         parser.add_argument('-l', '--length', type=self.auto_int, help='The number of bytes to be read. 4 (one word) by default.', default=4)
+
+    def _add_openocd_argument(self, parser):
+        parser.add_argument('--openocd', action='store_true', help='PC should use openOCD as debugger host.')
 
     def _add_pc_argument(self, parser):
         parser.add_argument('--pc', type=self.auto_int, metavar='PC_ADDR', help='Initial program counter to start the CPU running from.')
