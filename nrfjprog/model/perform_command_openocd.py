@@ -35,8 +35,9 @@ from nrfjprog.model.perform_command import PerformCommand
 
 class OpenOCD(PerformCommand):
     """
-    Note: This is not usable yet.
+    Note: Missing some functions and program not working all the time.
 
+    Probably will need --family arugment to determine which target/nrf5x.cfg script to use - until this is shared in openOCD.
     """
     def _create_shell_command(self, command):
         return ['sudo', 'openocd', '-f', 'interface/cmsis-dap.cfg', '-f', 'target/nrf52.cfg', '-c', 'init', '-c', command, '-c', 'exit']
