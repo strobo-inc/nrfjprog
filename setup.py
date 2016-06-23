@@ -72,5 +72,10 @@ setup(
     keywords = 'nRF5 nRF51 nRF52 nrfjprog pynrfjprog pyOCD Nordic Semiconductor SEGGER JLink',
     install_requires = read_requirements('requirements.txt'),
     packages = find_packages(exclude=["tests.*", "tests"]),
-    include_package_data=False
+    include_package_data=False,
+    entry_points={
+        'console_scripts': [
+            'nrfjprog = nrfjprog.__main__:main'
+        ]
+    }
 )
