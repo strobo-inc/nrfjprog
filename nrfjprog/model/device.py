@@ -40,7 +40,8 @@ FLASH_SIZE = {'NRF52_FP1'      : 0x80000,
               'NRF51_XLR3'     : 0x40000,
               'NRF51_XLR2'     : 0x40000,
               'NRF51_XLR1'     : 0x40000,
-              'NRF52811_xxAA_REV1' :0x30000}
+              'NRF52811_xxAA_REV1' :0x30000,
+              'NRF52833_xxAA_REV1':0x80000}
 
 RAM_SIZE = {'NRF52_FP1'      : 0x10000,
             'NRF52_FP1_ENGB' : 0x8000,
@@ -51,7 +52,8 @@ RAM_SIZE = {'NRF52_FP1'      : 0x10000,
             'NRF51_XLR3'     : 0x4000,
             'NRF51_XLR2'     : 0x4000,
             'NRF51_XLR1'     : 0x4000,
-            'NRF52811_xxAA_REV1': 0x6000}
+            'NRF52811_xxAA_REV1': 0x6000,
+            'NRF52833_xxAA_REV1':0x20000}
 
 PAGE_SIZE = {'NRF52_FP1'      : 0x1000,
              'NRF52_FP1_ENGB' : 0x1000,
@@ -62,7 +64,8 @@ PAGE_SIZE = {'NRF52_FP1'      : 0x1000,
              'NRF51_XLR3'     : 0x400,
              'NRF51_XLR2'     : 0x400,
              'NRF51_XLR1'     : 0x400,
-             'NRF52811_xxAA_REV1':0x1000}
+             'NRF52811_xxAA_REV1':0x1000,
+             'NRF52833_xxAA_REV1':0x1000}
 
 
 class NRF5xDevice(object):
